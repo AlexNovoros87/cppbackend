@@ -131,7 +131,11 @@ int main(int argc, char** argv) {
        StartClient(port);
     }
     
-    /*
+   
+}
+
+
+ /*
     
     Recorder recorder(ma_format_u8, 1);
     Player   player(ma_format_u8, 1);
@@ -154,4 +158,3 @@ int main(int argc, char** argv) {
     return 0;
 
     */
-}

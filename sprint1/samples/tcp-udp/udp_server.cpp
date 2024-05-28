@@ -15,7 +15,6 @@ int main() {
 
     try {
         boost::asio::io_context io_context;
-
         udp::socket socket(io_context, udp::endpoint(udp::v4(), port));
 
         // Запускаем сервер в цикле, чтобы можно было работать со многими клиентами

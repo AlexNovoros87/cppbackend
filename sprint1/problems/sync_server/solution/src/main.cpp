@@ -58,7 +58,6 @@ struct ContentType {
 StringResponse MakeStringResponse(const StringRequest& req) {
     
     bool allowed_response = (req.method() == http::verb::get || req.method() == http::verb::head);
-    
     StringResponse response((allowed_response) ?  http::status::ok : http::status::method_not_allowed, req.version());
     response.keep_alive(req.keep_alive()); 
     response.set(http::field::content_type, ContentType::TEXT_HTML);

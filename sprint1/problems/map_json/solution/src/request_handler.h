@@ -36,19 +36,23 @@ public:
 private:
     template <typename Body, typename Allocator>
     StringResponse MakeRespone(http::request<Body, http::basic_fields<Allocator>>&& req){
-        bool allowed_response = (req.method() == http::verb::get || req.method() == http::verb::head);
-         StringResponse response((allowed_response) ? http::status::ok : http::status::method_not_allowed, req.version());
+       
+         StringResponse response;
+         //((allowed_response) ? http::status::ok : http::status::method_not_allowed, req.version());
          response.keep_alive(req.keep_alive());
          response.set(http::field::content_type, ContentType::APP_JSON);
+         response.version(req.version());
       
         std::ostringstream ostr;
         ostr << req.target();
         auto parsed_target = ParseTarget(std::move(ostr.str()));
         
         if(!CheckValid(parsed_target)) {
+           response.result(http::status::bad_request);
            response.body() = IncorrectResponse::WRONG_REQ;
         }
         else if(parsed_target.size()== 3){
+           response.result(http::status::ok);
           response.body() = MakeAllMaps(game_);
 
         }
@@ -56,10 +60,12 @@ private:
         {
           auto map = game_.FindMap(model::Map::Id(parsed_target[3]));
           if(map == nullptr){
+            response.result(http::status::not_found);
             response.body() = IncorrectResponse::WRONG_MAP;
         
           }
           else{
+           response.result(http::status::ok);
            response.body()= std::string("").append("{\n").append(MakeOneMap(map)).append("\n}");
           }
 

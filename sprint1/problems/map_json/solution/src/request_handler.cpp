@@ -56,8 +56,8 @@ std::vector<std::string>ParseTarget(std::string target){
        oss.clear();
        lastchar = ch;
       }
-      else if( ((ch< 'A' && ch> 'Z') && (ch< 'a' && ch> 'z')) && (ch!= '_' && ch!='-') ){
-        return{};
+      else if(!isdigit(ch) && !isalpha(ch)){ //((ch< 'A' && ch> 'Z') && (ch< 'a' && ch> 'z')) && (ch!= '_' && ch!='-') 
+          if(ch!= '_' && ch!='-') return{};
       }
       else{
       oss.push_back(ch);

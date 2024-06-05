@@ -118,7 +118,7 @@ public:
         , offset_{offset} {
             json_.clear();
      
-     json_.append("{ \"id\": ").append(*id_).append(", \"x\": ").append(std::to_string(position.x))
+     json_.append("{ \"id\": \"").append(*id_).append("\", \"x\": ").append(std::to_string(position.x))
           .append(", \"y\": ").append(std::to_string(position.y)).append(", \"offsetX\": ")
           .append(std::to_string(offset.dx)).append(", \"offsetY\": ")
           .append(std::to_string(offset.dy)).append(" }");

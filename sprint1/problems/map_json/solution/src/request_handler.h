@@ -3,6 +3,7 @@
 #include<string>
 #include "server/http_server.h"
 #include "model.h"
+#include "json_loader.h"
 
 std::vector<std::string>ParseTarget(std::string target);
 bool CheckValid(const std::vector<std::string>& container);
@@ -46,6 +47,7 @@ private:
         std::ostringstream ostr;
         ostr << req.target();
         auto parsed_target = ParseTarget(std::move(ostr.str()));
+        std::string body;
         
         // std::cout<<"-------------------"<<std::endl;
         // for(const auto & i: parsed_target){
@@ -55,11 +57,11 @@ private:
         
         if(!CheckValid(parsed_target)) {
            response.result(http::status::bad_request);
-           response.body() = IncorrectResponse::WRONG_REQ;
+           body = IncorrectResponse::WRONG_REQ;
         }
         else if(parsed_target.size()== 3){
            response.result(http::status::ok);
-          response.body() = MakeAllMaps(game_);
+           body = MakeAllMaps(game_);
 
         }
         else
@@ -69,14 +71,18 @@ private:
           auto map = game_.FindMap(model::Map::Id(parsed_target[3])); //.substr(0,parsed_target[3].size()-1)));  
           if(map == nullptr){
             response.result(http::status::not_found);
-            response.body() = IncorrectResponse::WRONG_MAP;
+            body = IncorrectResponse::WRONG_MAP;
           }
           else{
            response.result(http::status::ok);
-           response.body()= std::string("").append("{\n").append(MakeOneMap(map)).append("\n}");
+           body.append("{\n").append(MakeOneMap(map)).append("\n}");
           }
 
         }
+              
+        auto obj = json::parse(body);
+        response.body() = json::serialize(obj);
+        
         
         return response;
 

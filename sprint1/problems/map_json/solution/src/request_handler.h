@@ -47,6 +47,12 @@ private:
         ostr << req.target();
         auto parsed_target = ParseTarget(std::move(ostr.str()));
         
+        // std::cout<<"-------------------"<<std::endl;
+        // for(const auto & i: parsed_target){
+        //   std::cout<<i<<" ";
+        // }
+        // std::cout<<"{-------------------}"<<std::endl;
+        
         if(!CheckValid(parsed_target)) {
            response.result(http::status::bad_request);
            response.body() = IncorrectResponse::WRONG_REQ;
@@ -58,11 +64,12 @@ private:
         }
         else
         {
-          auto map = game_.FindMap(model::Map::Id(parsed_target[3]));
+       //  std::cout<<parsed_target[3];//.substr(0,parsed_target[3].size()-1)<<std::endl;
+         
+          auto map = game_.FindMap(model::Map::Id(parsed_target[3])); //.substr(0,parsed_target[3].size()-1)));  
           if(map == nullptr){
             response.result(http::status::not_found);
             response.body() = IncorrectResponse::WRONG_MAP;
-        
           }
           else{
            response.result(http::status::ok);

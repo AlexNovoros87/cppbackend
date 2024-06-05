@@ -43,21 +43,18 @@ return oss;
 };
 
 std::vector<std::string>ParseTarget(std::string target){
+   //std::cout<<target<<std::endl;
    std::vector<std::string> targets;
    if(target.empty()) return targets;
    target = target.substr(1);
    char lastchar;  
    std::string oss; 
    for(char ch : target){
-      
       if(ch == '/'){
        if(lastchar == '/') return{};
        if(!oss.empty())targets.push_back(std::move(oss));
        oss.clear();
        lastchar = ch;
-      }
-      else if(!isdigit(ch) && !isalpha(ch)){ //((ch< 'A' && ch> 'Z') && (ch< 'a' && ch> 'z')) && (ch!= '_' && ch!='-') 
-          if(ch!= '_' && ch!='-') return{};
       }
       else{
       oss.push_back(ch);
@@ -74,6 +71,10 @@ bool CheckValid(const std::vector<std::string>& container){
      if(container[0] != "api") return false;
      if(container[1] != "v1") return false;
      if(container[2] != "maps" ) return false;
+       if(container.size() > 3){
+         if(container[3].size() < 3) return false;
+       }
+
      return true;
 };
 

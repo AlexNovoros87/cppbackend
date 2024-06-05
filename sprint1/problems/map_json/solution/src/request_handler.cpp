@@ -11,21 +11,20 @@ std::string MakeOneMap(const model::Map* map){
     oss.append("\n");
   }
   oss.append("  ],\n      \"buildings\": [\n");
-
+  auto& buildings = map->GetBuildings();
+   for(int i=0; i< buildings.size(); ++i){
+     oss.append("    ").append(buildings[i].GetJsonType());
+    if(i+1 < buildings.size()) oss.append(",");
+    oss.append("\n");
+   }
+   oss.append("  ],\n      \"offices\": [\n");
    auto& offices = map->GetOffices();
    for(int i=0; i< offices.size(); ++i){
    oss.append("    ").append(offices[i].GetJsonType());
     if(i+1 < offices.size()) oss.append(",");
     oss.append("\n");
    }
-   oss.append("  ],\n      \"offices\": [\n");
- 
-   auto& buildings = map->GetBuildings();
-   for(int i=0; i< buildings.size(); ++i){
-     oss.append("    ").append(buildings[i].GetJsonType());
-    if(i+1 < buildings.size()) oss.append(",");
-    oss.append("\n");
-   }
+
    oss.append("  ]");
    return oss;
 };

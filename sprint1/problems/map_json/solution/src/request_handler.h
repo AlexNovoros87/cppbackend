@@ -80,9 +80,9 @@ private:
 
         }
               
-        auto obj = json::parse(body);
-        response.body() = json::serialize(obj);
-        
+        //auto obj = json::parse(body);
+        //response.body() = json::serialize(obj);
+        response.body() = body;
         
         return response;
 

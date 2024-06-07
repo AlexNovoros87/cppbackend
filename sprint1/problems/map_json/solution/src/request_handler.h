@@ -3,7 +3,12 @@
 #include<string>
 #include "server/http_server.h"
 #include "model.h"
+
+//#define SERIALIZE 1
+
+#ifdef SERIALIZE
 #include "json_loader.h"
+#endif
 
 std::vector<std::string>ParseTarget(std::string target);
 bool CheckValid(const std::vector<std::string>& container);
@@ -48,13 +53,7 @@ private:
         ostr << req.target();
         auto parsed_target = ParseTarget(std::move(ostr.str()));
         std::string body;
-        
-        // std::cout<<"-------------------"<<std::endl;
-        // for(const auto & i: parsed_target){
-        //   std::cout<<i<<" ";
-        // }
-        // std::cout<<"{-------------------}"<<std::endl;
-        
+          
         if(!CheckValid(parsed_target)) {
            response.result(http::status::bad_request);
            body = IncorrectResponse::WRONG_REQ;
@@ -66,9 +65,7 @@ private:
         }
         else
         {
-       //  std::cout<<parsed_target[3];//.substr(0,parsed_target[3].size()-1)<<std::endl;
-         
-          auto map = game_.FindMap(model::Map::Id(parsed_target[3])); //.substr(0,parsed_target[3].size()-1)));  
+          auto map = game_.FindMap(model::Map::Id(parsed_target[3]));  
           if(map == nullptr){
             response.result(http::status::not_found);
             body = IncorrectResponse::WRONG_MAP;
@@ -80,10 +77,13 @@ private:
 
         }
               
-        //auto obj = json::parse(body);
-        //response.body() = json::serialize(obj);
+        #ifdef SERIALIZE
+          auto obj = json::parse(body);
+          response.body() = json::serialize(obj);
+        #else
         response.body() = body;
-        
+        #endif
+       
         return response;
 
     }

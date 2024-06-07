@@ -24,7 +24,6 @@ std::string MakeOneMap(const model::Map* map){
     if(i+1 < offices.size()) oss.append(",");
     oss.append("\n");
    }
-
    oss.append("  ]");
    return oss;
 };

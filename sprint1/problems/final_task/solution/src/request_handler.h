@@ -45,54 +45,57 @@ namespace http_handler
 
   private:
     template <typename Body, typename Allocator>
-    StringResponse MakeRespone(http::request<Body, http::basic_fields<Allocator>> &&req)
-    {
-      StringResponse response;
-      response.keep_alive(req.keep_alive());
-      response.set(http::field::content_type, ContentType::APP_JSON);
-      response.version(req.version());
-
-      std::ostringstream ostr;
-      ostr << req.target();
-      auto parsed_target = ParseTarget(std::move(ostr.str()));
-      std::string body;
-
-      if (!CheckValid(parsed_target))
-      {
-        response.result(http::status::bad_request);
-        body = IncorrectResponse::WRONG_REQ;
-      }
-      else if (parsed_target.size() == 3)
-      {
-        response.result(http::status::ok);
-        body = MakeAllMaps(game_);
-      }
-      else
-      {
-        auto map = game_.FindMap(model::Map::Id(parsed_target[3]));
-        if (map == nullptr)
-        {
-          response.result(http::status::not_found);
-          body = IncorrectResponse::WRONG_MAP;
-        }
-        else
-        {
-          response.result(http::status::ok);
-          body.append("{\n").append(MakeOneMap(map)).append("\n}");
-        }
-      }
-
-#ifdef SERIALIZE
-      auto obj = json::parse(body);
-      response.body() = json::serialize(obj);
-#else
-      response.body() = body;
-#endif
-
-      return response;
-    }
+    StringResponse MakeRespone(http::request<Body, http::basic_fields<Allocator>> &&req);
 
     model::Game &game_;
   };
+
+  template <typename Body, typename Allocator>
+  StringResponse RequestHandler::MakeRespone(http::request<Body, http::basic_fields<Allocator>> &&req)
+  {
+    StringResponse response;
+    response.keep_alive(req.keep_alive());
+    response.set(http::field::content_type, ContentType::APP_JSON);
+    response.version(req.version());
+
+    std::ostringstream ostr;
+    ostr << req.target();
+    auto parsed_target = ParseTarget(std::move(ostr.str()));
+    std::string body;
+
+    if (!CheckValid(parsed_target))
+    {
+      response.result(http::status::bad_request);
+      body = IncorrectResponse::WRONG_REQ;
+    }
+    else if (parsed_target.size() == 3)
+    {
+      response.result(http::status::ok);
+      body = MakeAllMaps(game_);
+    }
+    else
+    {
+      auto map = game_.FindMap(model::Map::Id(parsed_target[3]));
+      if (map == nullptr)
+      {
+        response.result(http::status::not_found);
+        body = IncorrectResponse::WRONG_MAP;
+      }
+      else
+      {
+        response.result(http::status::ok);
+        body.append("{\n").append(MakeOneMap(map)).append("\n}");
+      }
+    }
+
+#ifdef SERIALIZE
+    auto obj = json::parse(body);
+    response.body() = json::serialize(obj);
+#else
+    response.body() = body;
+#endif
+
+    return response;
+  }
 
 } // namespace http_handler

@@ -34,5 +34,6 @@ add_executable(game_server
 	src/server/cl_listener.h
 	src/server/http_server.h
 	src/server/rerror.cpp
+	src/server/cl_session_base.cpp
 )
 target_link_libraries(game_server PRIVATE Threads::Threads)

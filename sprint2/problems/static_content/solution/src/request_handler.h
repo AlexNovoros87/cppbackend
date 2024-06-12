@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include <filesystem>
+#include <algorithm>
 #include "server/http_server.h"
 #include "req_static_objects.h"
 #include "model.h"
@@ -43,6 +44,28 @@ StringResponse Make404(http::request<Body, http::basic_fields<Allocator>> &&req)
   return response;
 };
 
+template <typename Body, typename Allocator>
+std::string GetExtention(http::request<Body, http::basic_fields<Allocator>> &req)
+{
+  std::string_view req_body = req.target();
+  std::string extention;
+  if (req_body.empty())
+    return extention;
+  for (size_t i = req_body.size() - 1; i > 0; --i)
+  {
+    if (req_body[i] == '\\' || req_body[i] == '/')
+      break;
+    if (req_body[i] == '.')
+    {
+      extention += '.';
+      break;
+    };
+    extention += req_body[i];
+  }
+  std::reverse(extention.begin(), extention.end());
+  return extention;
+};
+
 namespace http_handler
 {
   namespace beast = boost::beast;
@@ -50,12 +73,12 @@ namespace http_handler
 
   class RequestHandler
   {
-  model::Game &game_;
-  fs::path way_to_static;
-  
-   public:
-    explicit RequestHandler(model::Game &game,const fs::path& path_to_static)
-        : game_{game} , way_to_static(path_to_static)
+    model::Game &game_;
+    fs::path way_to_static;
+
+  public:
+    explicit RequestHandler(model::Game &game, const fs::path &path_to_static)
+        : game_{game}, way_to_static(path_to_static)
     {
     }
 
@@ -78,8 +101,6 @@ namespace http_handler
 
     template <typename Body, typename Allocator>
     VariantResponse MakeStaticRespone(http::request<Body, http::basic_fields<Allocator>> &&req);
-
-    
   };
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   template <typename Body, typename Allocator>
@@ -118,15 +139,14 @@ namespace http_handler
       if (tmp[0] == '\\' || tmp[0] == '/')
         tmp = tmp.substr(1);
     }
-    const fs::path req_path = fs::weakly_canonical(fs::path(tmp));                   // target запроса
-    const fs::path index_addition = fs::weakly_canonical(fs::path("index.html"));    // добавка к пути паки статик
-    const fs::path absolute = way_to_static / req_path;           // абсолютный желаемый путь запроса
-    const fs::path index_path = way_to_static / index_addition;   // путь до index.html
-    
-    std::cout<<way_to_static<<std::endl;
-    std::cout<<absolute<<std::endl;
-    
-    
+    const fs::path req_path = fs::weakly_canonical(fs::path(tmp));                // target запроса
+    const fs::path index_addition = fs::weakly_canonical(fs::path("index.html")); // добавка к пути паки статик
+    const fs::path absolute = way_to_static / req_path;                           // абсолютный желаемый путь запроса
+    const fs::path index_path = way_to_static / index_addition;                   // путь до index.html
+
+    //std::cout << way_to_static << std::endl;
+    //std::cout << absolute << std::endl;
+
     if (!IsSubPath(absolute, way_to_static))
     {
       return Make400(std::move(req));
@@ -134,6 +154,10 @@ namespace http_handler
 
     FileResponse response;
     http::file_body::value_type file;
+    std::string extention = GetExtention(req);
+    
+    std::cout<<extention<<std::endl;
+    
     if (tmp.empty())
     {
       if (sys::error_code ec; file.open(index_path.c_str(), beast::file_mode::read, ec), ec)
@@ -142,6 +166,7 @@ namespace http_handler
         return Make404(std::move(req));
       }
       response.body() = std::move(file);
+      response.set(http::field::content_type, type_content.at(".html"));
       response.prepare_payload();
       return response;
     }
@@ -151,10 +176,19 @@ namespace http_handler
       std::cout << "Failed to open file "sv << absolute.c_str() << std::endl;
       return Make404(std::move(req));
     }
+   
+    if(type_content.count(extention) == 0){
+       response.set(http::field::content_type, type_content.at(""));
+    }
+    else
+    {
+     response.set(http::field::content_type, type_content.at(extention));
+    }
+    
     response.body() = std::move(file);
     response.prepare_payload();
     return response;
- };
+  };
 
   template <typename Body, typename Allocator>
   VariantResponse RequestHandler::MakeAPIRespone(http::request<Body, http::basic_fields<Allocator>> &&req, const std::vector<std::string> &parsed_target)

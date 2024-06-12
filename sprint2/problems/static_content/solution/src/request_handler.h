@@ -77,8 +77,8 @@ namespace http_handler
     fs::path way_to_static;
 
   public:
-    explicit RequestHandler(model::Game &game, const fs::path &path_to_static)
-        : game_{game}, way_to_static(path_to_static)
+    explicit RequestHandler(model::Game &game,fs::path path_to_static)
+        : game_{game}, way_to_static(fs::weakly_canonical(path_to_static))
     {
     }
 

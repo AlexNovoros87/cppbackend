@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 20)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 add_executable(game_server
 	src/main.cpp
 	src/sdk.h
@@ -29,4 +32,5 @@ add_executable(game_server
 	src/logger/logger.cpp
 )
 #target_include_directories(game_server PRIVATE CONAN_PKG::boost)
-target_link_libraries(game_server CONAN_PKG::boost)
+target_link_libraries(game_server PRIVATE CONAN_PKG::boost Threads::Threads)
+

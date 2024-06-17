@@ -147,7 +147,9 @@ namespace http_handler
 
     if (!IsSubPath(absolute, way_to_static))
     {
-      return Make400(std::move(req));
+      auto resp = Make400(std::move(req));
+      resp.prepare_payload();
+      return resp;
     }
 
     FileResponse response;
@@ -159,7 +161,9 @@ namespace http_handler
       if (sys::error_code ec; file.open(index_path.c_str(), beast::file_mode::read, ec), ec)
       {
         std::cout << "Failed to open file "sv << index_path.c_str() << std::endl;
-        return Make404(std::move(req));
+        auto resp = Make404(std::move(req));
+        resp.prepare_payload();
+        return resp;
       }
       response.body() = std::move(file);
       response.set(http::field::content_type, type_content.at(".html"));
@@ -169,8 +173,10 @@ namespace http_handler
 
     if (sys::error_code ec; file.open(absolute.c_str(), beast::file_mode::read, ec), ec)
     {
+      auto resp = Make404(std::move(req));
       std::cout << "Failed to open file "sv << absolute.c_str() << std::endl;
-      return Make404(std::move(req));
+      resp.prepare_payload();
+      return resp;
     }
    
     if(type_content.count(extention) == 0){
@@ -183,6 +189,8 @@ namespace http_handler
     
     response.body() = std::move(file);
     response.prepare_payload();
+    std::cout<<"I AM AT END"<<std::endl;
+    
     return response;
   };
 

@@ -28,7 +28,7 @@ namespace http_server
 
         void HandleRequest(HttpRequest &&request) override
         {
-
+               
 #ifdef CONSOLE_LOGGING
             LogRequest(RequestParams(request, ip_));
 #endif
@@ -36,6 +36,7 @@ namespace http_server
             TimePoint begin = GetNow();
             request_handler_(std::move(request), [&, self = this->shared_from_this()](auto &&response)
                              {
+                                                           
                                  ResponseParams params(response);
 
                                  if (std::holds_alternative<http::response<http::string_body>>(response))
@@ -44,13 +45,11 @@ namespace http_server
                                  else if (std::holds_alternative<http::response<http::file_body>>(response))
                                      self->Write(std::move(std::get<1>(response)));
 
-
 #ifdef CONSOLE_LOGGING
                                  LogResponse(params, std::move(begin));
 #endif
                              });
 
-            // th1.join();
         }
 
         std::shared_ptr<SessionBase> GetSharedThis() override

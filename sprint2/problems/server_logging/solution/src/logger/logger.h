@@ -36,7 +36,7 @@ struct ResponseParams{
          content_type = std::string(std::get<StringResponse>(resp)[http::field::content_type]);
          code =  std::get<StringResponse>(resp).result_int();
       }
-      else if(std::holds_alternative<StringResponse>(resp)){
+      else if(std::holds_alternative<FileResponse>(resp)){
          content_type = std::string(std::get<FileResponse>(resp)[http::field::content_type]);
          code =  std::get<FileResponse>(resp).result_int();
       }

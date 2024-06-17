@@ -189,7 +189,6 @@ namespace http_handler
     
     response.body() = std::move(file);
     response.prepare_payload();
-    std::cout<<"I AM AT END"<<std::endl;
     
     return response;
   };

@@ -25,14 +25,9 @@ namespace request_handler
 
     template <typename Body, typename Allocator, typename Send>
     void operator()(http::request<Body, http::basic_fields<Allocator>> &&req, Send &&send)
-    {
-
-       
+    {      
       auto parsed_target = ParseTarget(std::string(req.target()));
       request_handler::TypeRequest type_request = request_handler::GetTypeRequset(parsed_target);
-      
-      
-       std ::cout<<"Request_Body "<<std::boolalpha<<req.body().empty()<<std::endl;
       
       try
       {
@@ -46,13 +41,8 @@ namespace request_handler
                          try {
                              // Этот assert не выстрелит, так как лямбда-функция будет выполняться внутри strand
                              assert(self->api_strand_.running_in_this_thread());
-                             
-                             ;
                              return send(APIHandler(std::move(std::move(req)), self->game_ , parsed_target).MakeResponce());
-                            //  return send(self->MakeAPIRespone(req.version(),req.keep_alive(), 
-                            //                std::string(req.target()), std::move(parsed_target)));
-
-                         } catch (...) {
+                          } catch (...) {
                             
                              send(self->ReportServerError(req.version(), req.keep_alive()));
                          }
@@ -78,15 +68,7 @@ namespace request_handler
   private:
     VariantResponse ReportServerError(unsigned version, bool keep_alive) const;
 
-    // VariantResponse MakeAPIRespone(unsigned version, bool keep_alive, std::string target,
-    //                                std::vector<std::string> parsed_target);
-
     VariantResponse MakeStaticRespone(unsigned version, bool keep_alive, std::string target);
   };
 
 } // namespace http_handler
-
-// auto i = req.method();
-      // std::cout<<typeid(i).name()<<std::endl;
-      // std::cout<<req.method()<<std::endl;
-      // std::cout<<req.body()<<std::endl;

@@ -49,31 +49,11 @@ namespace model
 
         Road(HorizontalTag, Point start, Coord end_x) noexcept;
         Road(VerticalTag, Point start, Coord end_y) noexcept;
-
-        const std::string &GetJsonType() const
-        {
-            return json_;
-        }
-
-        bool IsHorizontal() const noexcept
-        {
-            return start_.y == end_.y;
-        }
-
-        bool IsVertical() const noexcept
-        {
-            return start_.x == end_.x;
-        }
-
-        Point GetStart() const noexcept
-        {
-            return start_;
-        }
-
-        Point GetEnd() const noexcept
-        {
-            return end_;
-        }
+        const std::string &GetJsonType() const;
+        bool IsHorizontal() const noexcept;
+        bool IsVertical() const noexcept;
+        Point GetStart() const noexcept;
+        Point GetEnd() const noexcept;
 
     private:
         Point start_;
@@ -85,16 +65,8 @@ namespace model
     {
     public:
         explicit Building(Rectangle bounds) noexcept;
-
-        const Rectangle &GetBounds() const noexcept
-        {
-            return bounds_;
-        }
-
-        const std::string &GetJsonType() const
-        {
-            return json_;
-        }
+        const Rectangle &GetBounds() const noexcept;
+        const std::string &GetJsonType() const;
 
     private:
         Rectangle bounds_;
@@ -107,25 +79,10 @@ namespace model
         using Id = util::Tagged<std::string, Office>;
 
         Office(Id id, Point position, Offset offset) noexcept;
-        const Id &GetId() const noexcept
-        {
-            return id_;
-        }
-
-        Point GetPosition() const noexcept
-        {
-            return position_;
-        }
-
-        Offset GetOffset() const noexcept
-        {
-            return offset_;
-        }
-
-        const std::string &GetJsonType() const
-        {
-            return json_;
-        }
+        const Id &GetId() const noexcept;
+        Point GetPosition() const noexcept;
+        Offset GetOffset() const noexcept;
+        const std::string &GetJsonType() const;
 
     private:
         Id id_;
@@ -142,46 +99,14 @@ namespace model
         using Buildings = std::vector<Building>;
         using Offices = std::vector<Office>;
 
-        Map(Id id, std::string name) noexcept
-            : id_(std::move(id)), name_(std::move(name))
-        {
-        }
-
-        const Id &GetId() const noexcept
-        {
-            return id_;
-        }
-
-        const std::string &GetName() const noexcept
-        {
-            return name_;
-        }
-
-        const Buildings &GetBuildings() const noexcept
-        {
-            return buildings_;
-        }
-
-        const Roads &GetRoads() const noexcept
-        {
-            return roads_;
-        }
-
-        const Offices &GetOffices() const noexcept
-        {
-            return offices_;
-        }
-
-        void AddRoad(const Road &road)
-        {
-            roads_.emplace_back(road);
-        }
-
-        void AddBuilding(const Building &building)
-        {
-            buildings_.emplace_back(building);
-        }
-
+        Map(Id id, std::string name) noexcept;
+        const Id &GetId() const noexcept;
+        const std::string &GetName() const noexcept;
+        const Buildings &GetBuildings() const noexcept;
+        const Roads &GetRoads() const noexcept;
+        const Offices &GetOffices() const noexcept;
+        void AddRoad(const Road &road);
+        void AddBuilding(const Building &building);
         void AddOffice(Office office);
 
     private:

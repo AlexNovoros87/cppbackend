@@ -117,6 +117,7 @@ namespace request_handler
         static constexpr const boost::json::string_view Authorization_header_is_missing = "Authorization header is missing";
         static constexpr const boost::json::string_view Player_token_has_not_been_found = "Player token has not been found";
         static constexpr const boost::json::string_view Invalid_method = "Invalid method";
+        static constexpr const boost::json::string_view Players_parse_error = "Players parse error";
     };
 
     struct statuses

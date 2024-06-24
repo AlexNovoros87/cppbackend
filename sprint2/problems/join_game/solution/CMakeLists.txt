@@ -39,7 +39,6 @@ set (game
 src/game/game.h
 src/game/game.cpp
 src/game/tokenizer.h
-src/game/tokenizer.cpp
 )
 
 set (helper 
@@ -48,7 +47,11 @@ src/req_helper/help.cpp
 src/req_helper/req_static_objects.h
 )
 
-
+set (handler
+src/requester/api_handler.h
+src/requester/request_handler.cpp
+src/requester/request_handler.h
+)
 
 
 add_executable(game_server
@@ -61,22 +64,9 @@ add_executable(game_server
 	${json}
     ${game} 
 	${helper}      	
+    ${handler}	
 	
-	
-	
-    src/requester/api_handler.h
-	src/requester/api_handler.cpp
-	src/requester/request_handler.cpp
-	src/requester/request_handler.h
-	
-   
-	
-
-
-
-    
-
-	)
+)
 #target_include_directories(game_server PRIVATE CONAN_PKG::boost)
 target_link_libraries(game_server PRIVATE CONAN_PKG::boost)
 

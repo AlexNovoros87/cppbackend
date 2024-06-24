@@ -58,9 +58,9 @@ namespace request_handler
                          }
                      };
                     
-                     handle();
+              
                 
-                    // return net::dispatch(api_strand_, handle);
+                     return net::dispatch(api_strand_, handle);
                              
         }
         else if (type_request == request_handler::TypeRequest::STATIC)

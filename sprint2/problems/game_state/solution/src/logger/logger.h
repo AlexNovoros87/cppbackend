@@ -14,9 +14,7 @@
 #include <variant>
 #include "../json/json_loader.h"
 
-
 #define CONSOLE_LOGGING 1
-
 namespace logger{
 
 using namespace std::literals;

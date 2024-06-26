@@ -15,7 +15,7 @@
 #include "../json/json_loader.h"
 
 
-//#define CONSOLE_LOGGING 1
+#define CONSOLE_LOGGING 1
 
 namespace logger{
 

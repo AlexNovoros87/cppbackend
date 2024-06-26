@@ -1,7 +1,6 @@
 #pragma once
 #pragma once
 #include "../req_helper/help.h"
-#include <mutex>
 
 namespace request_handler
 {
@@ -61,12 +60,15 @@ namespace request_handler
     VariantResponse Players();
     VariantResponse State();
   };
+
 /*
 Уважаемый ревьюер!! Здесь прекрасно вижу места копи-паста... Но
 зато каждая функция хорошо последовательн о читабельна.. 
 Пожертвовал несколькими десятками строками кода в+ к к размеру
 бинарника - зато все последовательно и ясно видна логика функций
 и без скачков...
+Несколько вариантов есть убрать повторяющийся паттерн - но сильно
+ухудшит читабельность и последовательность логики....
 */
   template <typename Requester>
   VariantResponse APIHandler<Requester>::GetHeadApi()
@@ -178,7 +180,7 @@ namespace request_handler
   template <typename Requester>
   VariantResponse APIHandler<Requester>::State(){
      
-      try
+    try
     {
 
       if (req_.method() != RequestMethod::get && req_.method() != RequestMethod::head)
@@ -207,32 +209,6 @@ namespace request_handler
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string(reason_to_human::Players_parse_error));
     }
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-     
-    
-
-  }
-
-
-
-
+ }
 
 }

@@ -1,6 +1,9 @@
 #pragma once
 #pragma once
 #include "../req_helper/help.h"
+#include <functional>
+#include <map>
+
 
 namespace request_handler
 {
@@ -12,6 +15,25 @@ namespace request_handler
     Requester req_;
     api::Play &game_;
     std::vector<std::string> parsed_target_;
+
+   std::variant<VariantResponse, std::shared_ptr<api::Player>> UseAutorizationPattern();
+    VariantResponse GetHeadApi();
+    VariantResponse Join();
+    VariantResponse Players();
+    VariantResponse State();
+    VariantResponse PlayerMove();
+    VariantResponse Error();
+
+   
+    std::unordered_map<DirectionAPI, std::function<VariantResponse()>>  functor_{
+      { DirectionAPI::PLAYERS, std::bind(&APIHandler<Requester>::Players, this) },
+      { DirectionAPI::MAPS, std::bind(&APIHandler<Requester>::GetHeadApi, this) },
+      { DirectionAPI::JOIN, std::bind(&APIHandler<Requester>::Join, this) },
+      { DirectionAPI::STATE, std::bind(&APIHandler<Requester>::State, this) },
+      { DirectionAPI::PLAYER_ACTION, std::bind(&APIHandler<Requester>::PlayerMove, this) },
+      { DirectionAPI::ERROR, std::bind(&APIHandler<Requester>::Error, this) },
+
+    };
 
   public:
     APIHandler(Requester &&req, api::Play &gm, std::vector<std::string> pt)
@@ -28,43 +50,9 @@ namespace request_handler
       };
 
       DirectionAPI direcion = Director(parsed_target_);
-
-      if (direcion == DirectionAPI::MAPS)
-      {
-        return GetHeadApi();
-      }
-      else if (direcion == DirectionAPI::PLAYERS)
-      {
-        return Players();
-      }
-      else if (direcion == DirectionAPI::JOIN)
-      {
-        return Join();
-      }
-      else if (direcion == DirectionAPI::STATE)
-      {
-        return State();
-      }
-      else if (direcion == DirectionAPI::PLAYER_ACTION)
-      {
-        return PlayerMove();
-      }
-      else
-      {
-        return Make400JSB(req_.version(), req_.keep_alive(),
-                          std::string(req_static_str::badRequest),
-                          std::string(reason_to_human::API_Base_Check_Failed));
-      };
-      return {};
+      return functor_.at(direcion)();
+    
     };
-
-  private:
-    std::variant<VariantResponse, std::shared_ptr<api::Player>> UseAutorizationPattern();
-    VariantResponse GetHeadApi();
-    VariantResponse Join();
-    VariantResponse Players();
-    VariantResponse State();
-    VariantResponse PlayerMove();
   };
 
   /*
@@ -76,6 +64,14 @@ namespace request_handler
   Несколько вариантов есть убрать повторяющийся паттерн - но сильно
   ухудшит читабельность и последовательность логики....
   */
+  template <typename Requester>
+  VariantResponse APIHandler<Requester>::Error(){
+  return Make400JSB(req_.version(), req_.keep_alive(),
+                          std::string(req_static_str::badRequest),
+                          std::string(reason_to_human::API_Base_Check_Failed));
+
+  }
+  
   template <typename Requester>
   VariantResponse APIHandler<Requester>::GetHeadApi()
   {
@@ -235,11 +231,6 @@ namespace request_handler
   }
 
   
-  
-  
-  
-  
-
   template <typename Requester>
   VariantResponse APIHandler<Requester>::PlayerMove()
   {
@@ -307,5 +298,4 @@ namespace request_handler
     }
     return {};
   };
-
 }

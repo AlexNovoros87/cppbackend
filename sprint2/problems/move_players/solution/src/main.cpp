@@ -65,7 +65,7 @@ int main(int argc, const char *argv[])
         //  model::Game game = json_loader::LoadGame(argv[1]);
         api::Play game = json_loader::LoadPlay(argv[1]);
        
-        std::cout<<"Def speed  "<< game.GetDefaultSpeed()<<std::endl;
+        
        
 
         // 2. Инициализируем io_context

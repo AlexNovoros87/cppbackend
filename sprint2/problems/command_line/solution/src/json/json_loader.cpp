@@ -10,28 +10,7 @@
 
 using namespace std::literals;
 
-struct Literals
-{
-    Literals() = delete;
-    static constexpr const boost::json::string_view X = "x";
-    static constexpr const boost::json::string_view Y = "y";
-    static constexpr const boost::json::string_view W = "w";
-    static constexpr const boost::json::string_view H = "h";
-    static constexpr const boost::json::string_view X0 = "x0";
-    static constexpr const boost::json::string_view Y0 = "y0";
-    static constexpr const boost::json::string_view X1 = "x1";
-    static constexpr const boost::json::string_view Y1 = "y1";
-    static constexpr const boost::json::string_view OFFSETX = "offsetX";
-    static constexpr const boost::json::string_view OFFSETY = "offsetY";
-    static constexpr const boost::json::string_view ROADS = "roads";
-    static constexpr const boost::json::string_view BUILDINGS = "buildings";
-    static constexpr const boost::json::string_view OFFICES = "offices";
-    static constexpr const boost::json::string_view MAPS = "maps";
-    static constexpr const boost::json::string_view ID = "id";
-    static constexpr const boost::json::string_view NAME = "name";
-    static constexpr const boost::json::string_view defaultDogSpeed = "defaultDogSpeed";
-    static constexpr const boost::json::string_view dogSpeed = "dogSpeed";
-};
+
 
 std::optional<model::Road> MakeRoad(boost::json::object obj)
 {

@@ -104,7 +104,6 @@ namespace model
         Id id_;
         std::string name_;
         double map_spd_ = 1.;
-
         Roads roads_;
         Buildings buildings_;
         OfficeIdToIndex warehouse_id_to_index_;

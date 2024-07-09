@@ -3,10 +3,18 @@
 #include <iomanip>
 #include <fstream>
 
+/*
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+УВАЖАЕМЫЙ КОД-РЕВЬЮЕР!!!! 
+ГДЕ ВСТРЕЧАЕТСЯ  {Literals::ID, *(map.GetId())} И ПОДОБНОЕ, 
+ЭТО НЕ УКАЗАТЕЛЬ!! ЭТО ОБЪЕКТ ИЗ tagget.h ДАННЫЙ ИЗ ТЕОРИИ
+*/
+
+
 // PARSED TARGET
 namespace request_handler
 {
-  
+
   std::vector<std::string> ParseToken(std::string target)
   {
     if (target.empty())
@@ -46,13 +54,12 @@ namespace request_handler
     if (container.size() < 3 || container.size() > 5)
       return DirectionAPI::ERROR;
 
-     if (container[2] == json_foo::maps)
+    if (container[2] == json_foo::maps)
       return DirectionAPI::MAPS;
 
     if (container[2] != json_foo::game)
       return DirectionAPI::ERROR;
 
-    
     if (container.size() == 4)
     {
       if (container[3] == json_foo::players)
@@ -61,7 +68,7 @@ namespace request_handler
         return DirectionAPI::JOIN;
       if (container[3] == json_foo::state)
         return DirectionAPI::STATE;
-        if (container[3] == json_foo::tick)
+      if (container[3] == json_foo::tick)
         return DirectionAPI::TICK;
     }
     if (container.size() == 5)
@@ -120,9 +127,8 @@ namespace request_handler
       return false;
     if (container[1] != json_foo::v1)
       return false;
-    if (container[2] != json_foo::maps && 
-        container[2] != json_foo::game 
-      )
+    if (container[2] != json_foo::maps &&
+        container[2] != json_foo::game)
       return false;
 
     return true;
@@ -134,18 +140,17 @@ namespace request_handler
 namespace request_handler
 {
 
-  TimePoint GetNow(){
+  TimePoint GetNow()
+  {
     return std::chrono::system_clock::now();
   };
-  
+
   bool IsCorrectWay(std::string_view way)
   {
     if (way != model::UDLR::U && way != model::UDLR::D && way != model::UDLR::L && way != model::UDLR::R && way != model::UDLR::STOP)
       return false;
     return true;
   };
-
-  
 
   std::string GetExtention(std::string req_body)
   {
@@ -349,55 +354,109 @@ namespace request_handler
 namespace request_handler
 {
 
+  json::object VRoad(const model::Road &road)
+  {
+    json::object res{{Literals::X0, road.GetStart().x},
+                     {Literals::Y0, road.GetStart().y},
+                     {Literals::Y1, road.GetEnd().y}};
+
+    return res;
+  }
+
+  json::object HRoad(const model::Road &road)
+  {
+    json::object res{{Literals::X0, road.GetStart().x},
+                     {Literals::Y0, road.GetStart().y},
+                     {Literals::X1, road.GetEnd().x}};
+
+    return res;
+  }
+
+  json::object MakeJSRoad(const model::Road &road)
+  {
+    if (road.IsVertical())
+      return VRoad(road);
+    return HRoad(road);
+  }
+
+  json::object MakeJSBuilding(const model::Building &build)
+  {
+    auto &bounds = build.GetBounds();
+    json::object res{
+        {Literals::X, bounds.position.x},
+        {Literals::Y, bounds.position.y},
+        {Literals::W, bounds.size.width},
+        {Literals::H, bounds.size.height}};
+    return res;
+  }
+
+  json::object MakeJSOffice(const model::Office &office)
+  {
+    json::object res{
+        {Literals::ID, *(office.GetId())},
+        {Literals::X, office.GetPosition().x},
+        {Literals::Y, office.GetPosition().y},
+        {Literals::OFFSETX, office.GetOffset().dx},
+        {Literals::OFFSETY, office.GetOffset().dy}};
+    return res;
+  }
+
+  json::object MakeShortMap(const model::Map &map)
+  {
+    json::object mp_json{
+        {Literals::ID, *(map.GetId())},
+        {Literals::NAME, map.GetName()}};
+        return mp_json;
+  }
+
   std::string MakeOneMap(const model::Map *map)
   {
-    std::string oss;
-    oss.append("  \"id\": \"").append(*map->GetId()).append("\",\n  \"name\": \"").append(map->GetName()).append("\",\n  \"roads\": [\n");
-    
+
+    assert(map != nullptr);
+    json::object mp_json;
+    mp_json[Literals::ID] = *map->GetId();
+    mp_json[Literals::NAME] = map->GetName();
+
+    // ДОРОГИ
+    json::array road_arr;
     auto &roads = map->GetRoads();
-    for (int i = 0; i < roads.size(); ++i)
+    for (auto &&rd : roads)
     {
-      oss.append("    ").append(roads[i]->GetJsonType());
-      if (i + 1 < roads.size())
-        oss.append(",");
-      oss.append("\n");
+      road_arr.push_back(MakeJSRoad(*rd));
     }
-    
-    
-    oss.append("  ],\n      \"buildings\": [\n");
-    auto &buildings = map->GetBuildings();
-    for (int i = 0; i < buildings.size(); ++i)
+    mp_json[Literals::ROADS] = std::move(road_arr);
+
+    // ЗДАНИЯ
+    json::array build_arr;
+    auto &build = map->GetBuildings();
+    for (auto &&bld : build)
     {
-      oss.append("    ").append(buildings[i].GetJsonType());
-      if (i + 1 < buildings.size())
-        oss.append(",");
-      oss.append("\n");
+      build_arr.push_back(MakeJSBuilding(bld));
     }
-    oss.append("  ],\n      \"offices\": [\n");
+    mp_json[Literals::BUILDINGS] = std::move(build_arr);
+
+    // ОФИСЫ
+    json::array office_arr;
     auto &offices = map->GetOffices();
-    for (int i = 0; i < offices.size(); ++i)
+    for (auto &&of : offices)
     {
-      oss.append("    ").append(offices[i].GetJsonType());
-      if (i + 1 < offices.size())
-        oss.append(",");
-      oss.append("\n");
+      office_arr.push_back(MakeJSOffice(of));
     }
-    oss.append("  ]");
-    return oss;
+    mp_json[Literals::OFFICES] = std::move(office_arr);
+    
+   
+    return json::serialize(mp_json);
+  
   };
 
   std::string MakeAllMaps(const model::Game &game)
   {
     auto &maps = game.GetMaps();
-    std::string oss;
-    oss.append("[");
-    for (size_t i = 0; i < maps.size(); ++i)
-    {
-      oss.append("{\"id\": \"" + *maps[i].GetId() + "\", \"name\": \"" + maps[i].GetName() + "\"}");
-      if (i + 1 < maps.size())
-        oss.append(",");
-    };
-    oss.append("]");
-    return oss;
-  };
+    json::array maps_arr;
+    for (auto && map : maps){
+       maps_arr.push_back(MakeShortMap(map));
+    }
+    
+    return json::serialize(maps_arr);
+  }
 }

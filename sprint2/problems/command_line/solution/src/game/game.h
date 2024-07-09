@@ -13,7 +13,7 @@ namespace api
   class Player
   {
   public:
-    Player(std::string dog, std::shared_ptr<model::GameSession> session, const SortedSessionRoads& roads , bool rand_dog) ;
+    Player(std::string dog, std::shared_ptr<model::GameSession> session, const SortedSessionRoads& s_roads , bool rand_dog);
     const std::string &GetToken() const;
     uint32_t GetId() const;
     std::shared_ptr<model::Dog> PlayersDog() const;
@@ -21,6 +21,7 @@ namespace api
     uint32_t GetDogId() const;
 
   private:
+    
     const SortedSessionRoads& sorted_roads_;
     std::shared_ptr<model::Dog> my_dog_;
     std::shared_ptr<model::GameSession> session_;
@@ -66,8 +67,8 @@ namespace api
     void BuildGraph();
     void BuildSortedRoadsToRandomizer();
     
-    double def_speed_ = std::numeric_limits<double>::min();
     const model::Game game_;
+    double def_speed_ = std::numeric_limits<double>::min();
     bool random_;
     bool auto_tick_;
     

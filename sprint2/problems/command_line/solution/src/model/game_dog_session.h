@@ -3,7 +3,6 @@
 #include <stdexcept>
 #include <memory>
 #include <iostream>
-#include <iostream>
 #include <map>
 #include <mutex>
 
@@ -15,7 +14,7 @@ namespace model
 
     public:
         Dog() = default;
-        Dog(std::string name);
+        explicit Dog(std::string name);
         const std::string &GetName() const;
         int GetId() const;
         void ChangeName(std::string name);
@@ -35,21 +34,7 @@ namespace model
         NSWE_Direction GetOrientation() const;
         void StopDog(){
             speed_ = {0.,0.};
-        } 
-   
-        void ManualTick(double delta_t){
-
-
-
-
-            
-        }
-    
-    
-    
-    
-    
-    
+        }  
     private: 
         std::string name_;
         static uint32_t ids_;
@@ -64,7 +49,7 @@ namespace model
     class GameSession
     {
     public:
-        GameSession(Map mp);
+        explicit GameSession(Map mp);
         std::shared_ptr<Dog> JoinGame(std::shared_ptr<Dog> dog_ptr);
         void LeaveGame(uint32_t id);
         const std::map<uint32_t, std::shared_ptr<Dog>> &GetDogs() const;
@@ -92,39 +77,5 @@ namespace model
          std::vector<Map> maps_;
          MapIdToIndex map_id_to_index_;
     };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

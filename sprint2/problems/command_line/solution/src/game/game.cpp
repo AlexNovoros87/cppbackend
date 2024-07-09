@@ -3,6 +3,15 @@
 #include "../req_helper/model_help.h"
 #include "../tokenizer/tokenizer.h"
 
+/*
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+УВАЖАЕМЫЙ КОД-РЕВЬЮЕР!!!! 
+ГДЕ ВСТРЕЧАЕТСЯ  {Literals::ID, *(map.GetId())} И ПОДОБНОЕ, 
+ЭТО НЕ УКАЗАТЕЛЬ!! ЭТО ОБЪЕКТ ИЗ tagget.h ДАННЫЙ В ТЕОРИИ
+*/
+
+
+
 using namespace model;
 
 #ifdef LOGGING
@@ -33,6 +42,7 @@ namespace api
   {
     for (auto &map : game_.GetMaps())
     {
+   
       sessions_[*map.GetId()] = std::make_shared<model::GameSession>(map);
     }
   };
@@ -42,7 +52,7 @@ namespace api
     InitSessions();
     BuildSortedRoadsToRandomizer();
     BuildGraph();
-    def_speed_ = def_spd;
+    
   };
 
   void Play::BuildSortedRoadsToRandomizer()
@@ -53,7 +63,7 @@ namespace api
       auto &sess_name = session.second->GetMap().GetId(); // имя данной сессии
       auto &roads = session.second->GetMap().GetRoads();
 
-      for (auto road : roads)
+      for (auto && road : roads)
       {
         if (road->IsHorizontal())
         {
@@ -71,18 +81,18 @@ namespace api
 
         if (sorted_by_type_roads_.at(*sess_name).count(RoadOrient::HORIZONTAL) > 0)
         {
-          auto &roads = sorted_by_type_roads_.at(*sess_name).at(RoadOrient::HORIZONTAL);
+          auto &roads_c = sorted_by_type_roads_.at(*sess_name).at(RoadOrient::HORIZONTAL);
 
-          std::sort(roads.begin(), roads.end(), [](std::shared_ptr<model::Road> left, std::shared_ptr<model::Road> right)
+          std::sort(roads_c.begin(), roads_c.end(), [](std::shared_ptr<model::Road> left, std::shared_ptr<model::Road> right)
                     { return std::min(left->GetStart().x, left->GetEnd().x) < std::min(right->GetStart().x, right->GetEnd().x); });
         }
 
         if (sorted_by_type_roads_.at(*sess_name).count(RoadOrient::VERTRICAL) > 0)
         {
 
-          auto &roads = sorted_by_type_roads_.at(*sess_name).at(RoadOrient::VERTRICAL);
+          auto &roads_c = sorted_by_type_roads_.at(*sess_name).at(RoadOrient::VERTRICAL);
 
-          std::sort(roads.begin(), roads.end(), [](std::shared_ptr<model::Road> left, std::shared_ptr<model::Road> right)
+          std::sort(roads_c.begin(), roads_c.end(), [](std::shared_ptr<model::Road> left, std::shared_ptr<model::Road> right)
                     { return std::min(left->GetStart().y, left->GetEnd().y) < std::min(right->GetStart().y, right->GetEnd().y); });
         }
       }

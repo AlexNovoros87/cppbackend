@@ -77,16 +77,4 @@ namespace http_server
             Read();
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
 }

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <functional>
 #include <map>
+// #define WHAT 1
 
 namespace request_handler
 {
@@ -37,7 +38,7 @@ namespace request_handler
     };
 
   public:
-    APIHandler(Requester &&req, api::Play &gm, std::vector<std::string> pt)
+    APIHandler(Requester &&req, api::Play &gm, const std::vector<std::string> &pt)
         : req_(req), game_(gm), parsed_target_(pt){};
 
     VariantResponse MakeResponce()
@@ -69,11 +70,11 @@ namespace request_handler
   VariantResponse APIHandler<Requester>::Tick()
   {
     using namespace model;
-    
-    if(game_.AutoTick()) return Make400JSB(req_.version(), req_.keep_alive(), 
-                         std::string(req_static_str::badRequest), "Time in auto mode");
-    
-    
+
+    if (game_.AutoTick())
+      return Make400JSB(req_.version(), req_.keep_alive(),
+                        std::string(req_static_str::badRequest), "Time in auto mode");
+
     // ЕСЛИ МЕТОД ОТЛИЧАЕТСЯ ОТ ПОСТ
     if (req_.method() != RequestMethod::post)
       return Make405JSB(req_.version(), req_.keep_alive(),
@@ -89,21 +90,26 @@ namespace request_handler
       // ПАРСИМ ТЕЛО ЗАПРОСА
       json::value object = json::parse(req_.body());
 
-      if(!object.as_object().at(req_static_str::timeDelta).is_number()) throw std::invalid_argument("Not correct delta");
-      
+      if (!object.as_object().at(req_static_str::timeDelta).is_number())
+        throw std::invalid_argument("Not correct delta");
+
       // ПОЛУЧАЕМ ДЕЛЬТУ ВРЕМЕНИ
       int64_t delta = object.as_object().at(req_static_str::timeDelta).as_int64();
       double d_time = static_cast<double>(delta);
-      if(std::isnan(d_time) || std::isinf(d_time) || d_time == std::numeric_limits<double>::min()  
-         || d_time == std::numeric_limits<double>::max()) throw std::invalid_argument("Not correct delta");
+      if (std::isnan(d_time) || std::isinf(d_time) || d_time == std::numeric_limits<double>::min() || d_time == std::numeric_limits<double>::max())
+        throw std::invalid_argument("Not correct delta");
 
-         game_.ManualTick(d_time);   
-      
+      game_.ManualTick(d_time);
+
       json::object obj;
       return Make200JSB(req_.version(), req_.keep_alive(), json::serialize(obj));
     }
-    catch (...)
+    catch (const std::exception &ex)
     {
+#ifdef WHAT
+      std::cout << ex.what() << std::endl;
+#endif
+
       // ОТВЕТ В СЛУЧАЕ ОШИБКИ
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string("ERROR IN TICK"));
@@ -123,7 +129,7 @@ namespace request_handler
   VariantResponse APIHandler<Requester>::GetHeadApi()
   {
 
-    //ПОЛУЧАЕМ ШАБЛОН С ГОТОВЫМИ ПОЛЯМИ
+    // ПОЛУЧАЕМ ШАБЛОН С ГОТОВЫМИ ПОЛЯМИ
     StringResponse response = Template(req_.version(), req_.keep_alive());
     std::string body;
 
@@ -193,8 +199,12 @@ namespace request_handler
       // ОТВЕТ
       return Make200JSB(req_.version(), req_.keep_alive(), player->GetToken(), player->GetId());
     }
-    catch (...)
+    catch (const std::exception &ex)
     {
+
+#ifdef WHAT
+      std::cout << ex.what() << std::endl;
+#endif
       // ОТВЕТ В СЛУЧАЕ ОШИБКИ
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string(reason_to_human::Join_game_request_parse_error));
@@ -234,8 +244,11 @@ namespace request_handler
       // ЕСЛИ ЕСТЬ ТАКОЙ ИГРОК - ВОЗВРАЩАЕМ НА НЕГО УКАЗАТЕЛЬ
       return player;
     }
-    catch (...)
+    catch (const std::exception &ex)
     {
+#ifdef WHAT
+      std::cout << ex.what() << std::endl;
+#endif
       // ЕСЛИ В СЛУЧАЕ ПАРСИНГА ПРОИЗОШЛА ОШИБКА
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string(reason_to_human::Players_parse_error));
@@ -288,7 +301,6 @@ namespace request_handler
                         std::string(req_static_str::invalidMethod), std::string(reason_to_human::Only_POST_method_is_expected),
                         std::string(req_static_str::Allowed_POST));
 
-  
     if (req_[HttpHeader::content_type] != type_content.at(Extensions::json))
     {
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "Invalid Content Type");
@@ -325,13 +337,17 @@ namespace request_handler
         return Make401JSB(req_.version(), req_.keep_alive(),
                           std::string(req_static_str::invalidToken), std::string("YOU HAVE NO PERMISSION"));
 
-        game_.MovePlayer(player, move);
-  
+      game_.MovePlayer(player, move);
+
       json::object obj;
       return Make200JSB(req_.version(), req_.keep_alive(), json::serialize(obj));
     }
-    catch (...)
+    catch (const std::exception &ex)
     {
+#ifdef WHAT
+      std::cout << ex.what() << std::endl;
+#endif
+
       // ОТВЕТ В СЛУЧАЕ ОШИБКИ
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string("ERROR IN PLAYER ACTION"));

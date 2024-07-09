@@ -48,8 +48,7 @@ int main(int argc, const char *argv[])
             Add_Console_Log();
             using namespace model;
 
-            bool auto_ticker = params->period != std::numeric_limits<uint64_t>::max() ? true : false;
-            // 1. Загружаем карту из файла и построить модель игры
+            bool auto_ticker = params->period != std::numeric_limits<uint64_t>::max() ;
             api::Play game = json_loader::LoadPlay(params->config_file, params->random_respawn, auto_ticker);
 
             // 2. Инициализируем io_context

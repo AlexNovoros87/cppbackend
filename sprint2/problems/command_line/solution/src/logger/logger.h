@@ -22,7 +22,7 @@ namespace logging = boost::log;
 namespace keywords = boost::log::keywords;
 namespace sinks = boost::log::sinks;
 namespace beast = boost::beast;
-namespace http= beast::http;
+namespace http = beast::http;
 
 using HttpRequest = http::request<http::string_body>;
 using StringResponse = http::response<http::string_body>;
@@ -47,11 +47,11 @@ struct ResponseParams{
 };
 
 struct RequestParams{
-  RequestParams(const HttpRequest& req, const std::string& IP){
-     method = std::string(req.method_string());
-     target = std::string(req.target());
-     ip = IP;
-  };
+  RequestParams(const HttpRequest& req, const std::string& IP) 
+         : method(std::string(req.method_string())),
+           target(std::string(req.target())),
+           ip(IP)
+         {};
   std::string method;
   std::string target;
   std::string ip;

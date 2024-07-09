@@ -1,5 +1,8 @@
 #include "game.h"
 #include "../json/json_loader.h"
+#include "../req_helper/model_help.h"
+#include "../tokenizer/tokenizer.h"
+
 using namespace model;
 
 #ifdef LOGGING
@@ -12,13 +15,7 @@ model::DogCoordinates GenerateRandomDogPosition(const SortedSessionRoads &graph)
   auto randomroad = Gen::GENERATOR.RoadPositionRandom(graph);
 
 #ifdef LOGGING
-  // fs << "Roads\n";
-  // for (auto &&type : graph)
-  // {
-  //    for(auto&&road: type.second){
-  //    fs << *road << std::endl;
-  //    }
-  // }
+
   fs << " RandomRoad: " << *randomroad << std::endl;
 #endif
 
@@ -93,10 +90,9 @@ namespace api
           auto &roads = sorted_by_type_roads_.at(*sess_name).at(RoadOrient::VERTRICAL);
 
           std::sort(roads.begin(), roads.end(), [](std::shared_ptr<model::Road> left, std::shared_ptr<model::Road> right)
-                      { return std::min(left->GetStart().y, left->GetEnd().y) < std::min(right->GetStart().y, right->GetEnd().y); });
+                    { return std::min(left->GetStart().y, left->GetEnd().y) < std::min(right->GetStart().y, right->GetEnd().y); });
         }
-     
-      } 
+      }
     }
   };
 
@@ -143,6 +139,58 @@ namespace api
 // GAME
 namespace api
 {
+
+  void Play::MovePlayer(std::shared_ptr<Player> player, const std::string &move)
+  {
+
+    double sess_spd = player->PlayersSession()->GetSessionSpeed();
+    auto dog = player->PlayersDog();
+    auto dogspeed = model::GetDogSpeedByDrection(move, sess_spd);
+
+#ifdef LOGGING
+    model::LogWas("CHANGE DIRECTION", dog);
+#endif
+    dog->SetDogSpeedAndDirection(std::move(dogspeed), model::string_nswe.at(move));
+#ifdef LOGGING
+    model::LogNow("CHANGE DIRECTION", dog);
+#endif
+  };
+
+  void Play::ManualTick(double delta_t)
+  {
+    auto &sessions = GameSessions();
+
+    for (auto &sess_p : sessions)
+    {
+
+      const auto &sess = *sess_p.second;
+      const auto &dogs = sess.GetDogs();
+      const auto &session_graph = Graph().at(*sess.GetMap().GetId());
+
+      for (auto &dog : dogs)
+      {
+        // GetNewCoordinates(const GameSession& game, std::shared_ptr<Dog> dog , const GameGraph& graph , uint64_t delta_t);
+        auto new_coordinates_and_limits = model::GetNewCoordinatesAndLimits(sess, dog.second, session_graph, delta_t);
+        auto coordinates = new_coordinates_and_limits.first;
+        auto &limits = new_coordinates_and_limits.second;
+
+#ifdef LOGGING
+        LogLimits(limits);
+        LogTdelta(delta);
+        LogWas("TICK", dog.second);
+#endif
+
+        dog.second->IsNeededTStopDog(coordinates, limits);
+        dog.second->SetDogCoordinates(coordinates);
+
+#ifdef LOGGING
+        LogNow("TICK", dog.second);
+        LogEndls();
+#endif
+      }
+    }
+  }
+
   std::shared_ptr<model::GameSession> Play::GetSession(const std::string &name) const
   {
     if (sessions_.count(name) > 0)

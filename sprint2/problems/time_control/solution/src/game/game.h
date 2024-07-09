@@ -4,7 +4,6 @@
 #include <filesystem>
 
 #include "../model/game_dog_session.h"
-#include "../tokenizer/tokenizer.h"
 
 
 
@@ -57,9 +56,10 @@ namespace api
     void PrintSessions() const;
     void PrintSessionRoads() const;
     void ChangeMapSpeed(const std::string &map, double speed);
+    void ManualTick(double delta_t);
+    void MovePlayer(std::shared_ptr<Player> player , const std::string& move);
+    
 
-  
-  
   private:
     void InitSessions();
     void BuildGraph();

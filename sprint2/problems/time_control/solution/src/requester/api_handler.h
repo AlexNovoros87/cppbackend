@@ -1,7 +1,6 @@
 #pragma once
 #pragma once
 #include "../req_helper/help.h"
-#include "../req_helper/model_help.h"
 #include <fstream>
 #include <functional>
 #include <map>
@@ -86,8 +85,6 @@ namespace request_handler
       // ПАРСИМ ТЕЛО ЗАПРОСА
       json::value object = json::parse(req_.body());
 
-      
-      
       if(!object.as_object().at(req_static_str::timeDelta).is_number()) throw std::invalid_argument("Not correct delta");
       
       // ПОЛУЧАЕМ ДЕЛЬТУ ВРЕМЕНИ
@@ -96,44 +93,8 @@ namespace request_handler
       if(std::isnan(d_time) || std::isinf(d_time) || d_time == std::numeric_limits<double>::min()  
          || d_time == std::numeric_limits<double>::max()) throw std::invalid_argument("Not correct delta");
 
-     
-      auto &sessions = game_.GameSessions();
+         game_.ManualTick(d_time);   
       
-
-      for (auto &sess_p : sessions)
-      {
-
-        const auto &sess = *sess_p.second;
-        const auto &dogs = sess.GetDogs();
-        const auto &session_graph = game_.Graph().at(*sess.GetMap().GetId());
-
-        for (auto &dog : dogs)
-        {
-
-
-
-          // GetNewCoordinates(const GameSession& game, std::shared_ptr<Dog> dog , const GameGraph& graph , uint64_t delta_t);
-          auto new_coordinates_and_limits = GetNewCoordinatesAndLimits(sess, dog.second, session_graph, d_time);
-          auto coordinates = new_coordinates_and_limits.first;
-          auto &limits = new_coordinates_and_limits.second;
-
-          #ifdef LOGGING
-          LogLimits(limits);
-          LogTdelta(delta);
-          LogWas("TICK", dog.second);
-#endif
-          
-          dog.second->IsNeededTStopDog(coordinates, limits);
-          dog.second->SetDogCoordinates(coordinates);
-          
-
-#ifdef LOGGING
-          LogNow("TICK", dog.second);
-          
-          LogEndls();
-#endif
-        }
-      }
       json::object obj;
       return Make200JSB(req_.version(), req_.keep_alive(), json::serialize(obj));
     }
@@ -158,6 +119,7 @@ namespace request_handler
   VariantResponse APIHandler<Requester>::GetHeadApi()
   {
 
+    //ПОЛУЧАЕМ ШАБЛОН С ГОТОВЫМИ ПОЛЯМИ
     StringResponse response = Template(req_.version(), req_.keep_alive(), false);
     std::string body;
 
@@ -359,18 +321,8 @@ namespace request_handler
         return Make401JSB(req_.version(), req_.keep_alive(),
                           std::string(req_static_str::invalidToken), std::string("YOU HAVE NO PERMISSION"));
 
-      double sess_spd = player->PlayersSession()->GetSessionSpeed();
-      auto dog = player->PlayersDog();
-      auto dogspeed = model::GetDogSpeedByDrection(move, sess_spd);
-
-     #ifdef LOGGING
-     model::LogWas("CHANGE DIRECTION" , dog);
-     #endif 
-      dog->SetDogSpeedAndDirection(std::move(dogspeed), model::string_nswe.at(move));
-      
-       #ifdef LOGGING
-     model::LogNow("CHANGE DIRECTION" , dog);
-     #endif 
+        game_.MovePlayer(player, move);
+  
       json::object obj;
       return Make200JSB(req_.version(), req_.keep_alive(), json::serialize(obj));
     }

@@ -2,7 +2,7 @@
 #include "../game/game.h"
 
 
-struct LoggingDogs;
+using SessionGraph = std::unordered_map<double , std::unordered_map<double, std::vector<std::shared_ptr<model::Road>>>>;
 
 namespace model{
 

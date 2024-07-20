@@ -71,3 +71,5 @@ SCENARIO("Loot generation") {
         }
     }
 }
+
+

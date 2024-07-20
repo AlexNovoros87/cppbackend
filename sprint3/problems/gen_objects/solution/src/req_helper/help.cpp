@@ -263,7 +263,7 @@ namespace request_handler
     
     json::object tmp;
     tmp[std::string(req_static_str::players)] = std::move(doglist);
-    tmp[std::string(req_static_str::type)] = std::move(lootlist);
+    tmp[std::string("lostObjects")] = std::move(lootlist);
 
     json::value obj = std::move(tmp);
     return json::serialize(obj);

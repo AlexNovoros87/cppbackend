@@ -78,8 +78,6 @@ set (loot_gen
 
 
 set (srv_start
-src/main.cpp
-src/sdk.h
 ${model}
 ${server}
 ${logger}
@@ -93,17 +91,19 @@ ${loot_gen}
 )
 
 add_executable(game_server
-   ${srv_start}	
+src/main.cpp
+src/sdk.h  
+${srv_start}	
 )
 target_link_libraries(game_server PRIVATE CONAN_PKG::boost)
 
 
-add_executable(game_server_tests
-tests/loot_generator_tests.cpp       
-${srv_start}
-)
+#add_executable(game_server_tests
+#tests/loot_generator_tests.cpp       
+#${srv_start}
 
-find_package(Threads REQUIRED)
-target_link_libraries(game_server_tests PRIVATE CONAN_PKG::boost CONAN_PKG::catch2 Threads::Threads)
+#)
+#find_package(Threads REQUIRED)
+#target_link_libraries(game_server_tests PRIVATE CONAN_PKG::boost CONAN_PKG::catch2 Threads::Threads)
 
 

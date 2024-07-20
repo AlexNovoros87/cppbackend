@@ -129,6 +129,12 @@ namespace request_handler
   VariantResponse APIHandler<Requester>::GetHeadApi()
   {
 
+    // ПРОВЕРЯЕМ МЕТОД ЗАПРОСА
+      if (req_.method() != boost::beast::http::verb::get && req_.method() != boost::beast::http::verb::head)
+        return Make405JSB(req_.version(), req_.keep_alive(),
+                          std::string(req_static_str::invalidMethod), std::string(reason_to_human::Invalid_method),
+                          std::string(req_static_str::Allowed_GET_HEAD));
+    
     // ПОЛУЧАЕМ ШАБЛОН С ГОТОВЫМИ ПОЛЯМИ
     StringResponse response = Template(req_.version(), req_.keep_alive());
     std::string body;
@@ -276,7 +282,8 @@ namespace request_handler
   template <typename Requester>
   VariantResponse APIHandler<Requester>::State()
   {
-    // ЗАПУСК ПАТТЕРНА ПРОВЕРКИ АВТОРИЗАЦИИ
+     
+   // ЗАПУСК ПАТТЕРНА ПРОВЕРКИ АВТОРИЗАЦИИ
     auto action = UseAutorizationPattern();
     // ЕСЛИ ВЕРНУЛСЯ СФОРМИРОВАНЫЙ ОТВЕТ - ВОЗВРАЩАЕМ ЕГО
     if (std::holds_alternative<VariantResponse>(action))

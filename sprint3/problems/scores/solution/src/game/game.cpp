@@ -137,7 +137,7 @@ namespace api
 
 }
 
-// GAME TICK
+// GAME TICK HELP
 namespace api
 {
 
@@ -146,6 +146,15 @@ namespace api
     //ЕСЛИ КОЛИЗИЯ С ОФИСОМ
     if (event.event_kind == collision_detector::ItemType::OFFICE)
     {
+      //ПОЛУЧАЕМ СУМКУ ИНИЦИАТОРА
+      auto & lootbag = event.initiator->GetLootBag();
+      for(auto && loot : lootbag){
+        //ПОЛУЧАЕМ ЦЕНУ С ПРЕДМЕТА С ФРОНЕНД ОБЪЕКТА
+        int scores = frontend::FrontEndLoot::GetPriceScore(sess.GetMap().GetName() ,loot.type); 
+        //НАЧИСЛЯЕМ ПРЕМИЮ СОБАКЕ.
+        event.initiator->TakeScores(scores);
+      }
+      
       //СБРОСИТЬ ЛУТ
       event.initiator->ThrowLoot();
     }

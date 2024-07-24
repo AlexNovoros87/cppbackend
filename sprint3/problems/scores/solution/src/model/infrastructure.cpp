@@ -227,8 +227,6 @@ namespace model
         return offices_;
     }
 
-   
-
     void Map::AddRoad(const Road &road)
     {
 

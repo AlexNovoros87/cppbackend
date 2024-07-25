@@ -32,7 +32,7 @@ using TimePoint = std::chrono::system_clock::time_point;
 
 
 struct ResponseParams{
-  ResponseParams(const VariantResponse& resp){
+ explicit ResponseParams(const VariantResponse& resp){
       if(std::holds_alternative<StringResponse>(resp)){
          content_type = std::string(std::get<StringResponse>(resp)[http::field::content_type]);
          code =  std::get<StringResponse>(resp).result_int();

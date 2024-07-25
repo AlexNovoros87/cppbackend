@@ -22,8 +22,9 @@ model::DogCoordinates GenerateRandomDogPosition(const SortedSessionRoads &graph)
 
 #ifdef FORCE
   return {0, 0};
-#endif
+#else
   return Gen::GENERATOR.GetRandomRoadPoint(randomroad);
+#endif
 }
 
 // GAME CONSTRUCTION
@@ -428,14 +429,21 @@ namespace api
 namespace api
 {
   uint32_t Player::ids_;
-  Player::Player(std::string dog, std::shared_ptr<model::GameSession> session, const SortedSessionRoads &s_roads, bool rand_dog) : sorted_roads_(s_roads)
-  {
-    my_dog_ = std::make_shared<model::Dog>(dog);
-    session_ = session;
-    token_ = Gen::GENERATOR.GenerateHEXToken();
-    id_ = ids_++;
+  Player::Player(std::string dog, 
+                 std::shared_ptr<model::GameSession> session, 
+                 const SortedSessionRoads &s_roads, 
+                 bool rand_dog) 
+  
+                : 
+                session_ (session),
+                sorted_roads_(s_roads),
+                need_randomize_dog_(rand_dog),
+                my_dog_(std::make_shared<model::Dog>(dog)),
+                token_ (Gen::GENERATOR.GenerateHEXToken()),
+                id_ (ids_++)
+{
+    
     DogCoordinates rand_coord;
-
     if (rand_dog)
     {
       rand_coord = GenerateRandomDogPosition(sorted_roads_);

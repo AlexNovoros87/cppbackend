@@ -5,12 +5,9 @@
 #include "../loot_gen/loot_generator.h"
 #include "collizer.h"
 
-
 using GameGraph = std::unordered_map<std::string, std::unordered_map<double, std::unordered_map<double, std::vector<std::shared_ptr<model::Road>>>>>;
 using SessionGraph = std::unordered_map<double, std::unordered_map<double, std::vector<std::shared_ptr<model::Road>>>>;
 using SortedSessionRoads = std::unordered_map<model::RoadOrient, std::vector<std::shared_ptr<model::Road>>>;
-
-
 
 namespace api
 {
@@ -27,13 +24,16 @@ namespace api
     uint32_t GetDogId() const;
 
   private:
-    const SortedSessionRoads &sorted_roads_;
-    std::shared_ptr<model::Dog> my_dog_;
     std::shared_ptr<model::GameSession> session_;
-    std::string token_;
-    static uint32_t ids_;
-    uint32_t id_;
+    const SortedSessionRoads &sorted_roads_;
     bool need_randomize_dog_;
+   
+    std::shared_ptr<model::Dog> my_dog_;
+    std::string token_;
+    uint32_t id_;
+   
+    static uint32_t ids_;
+    
   };
 
   class Play

@@ -47,7 +47,6 @@ namespace model
 
         Road(HorizontalTag, Point start, Coord end_x) noexcept;
         Road(VerticalTag, Point start, Coord end_y) noexcept;
-        const std::string &GetJsonType() const;
         bool IsHorizontal() const noexcept;
         bool IsVertical() const noexcept;
 
@@ -63,7 +62,6 @@ namespace model
     private:
         Point start_;
         Point end_;
-        std::string json_;
     };
 
     class Building
@@ -71,11 +69,10 @@ namespace model
     public:
         explicit Building(Rectangle bounds) noexcept;
         const Rectangle &GetBounds() const noexcept;
-        const std::string &GetJsonType() const;
+      
 
     private:
         Rectangle bounds_;
-        std::string json_;
     };
 
     class Office
@@ -87,13 +84,12 @@ namespace model
         const Id &GetId() const noexcept;
         Point GetPosition() const noexcept;
         Offset GetOffset() const noexcept;
-        const std::string &GetJsonType() const;
 
     private:
         Id id_;
         Point position_;
         Offset offset_;
-        std::string json_;
+       
     };
 
     class Map

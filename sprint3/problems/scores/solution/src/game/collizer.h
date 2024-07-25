@@ -1,3 +1,4 @@
+#pragma once
 #include "../colis_detect/collision_detector.h"
 #include "../req_helper/declaration_structs.h"
 #include "../model/game_dog_session.h"
@@ -52,12 +53,12 @@ namespace collision_detector
     class Collizer : public ItemGathererProvider
     {
     public:
-        size_t ItemsCount() const;
+        size_t ItemsCount() const override;
+        size_t GatherersCount() const override;
         const ItemMOD &GetCollisionPoint(size_t idx) const;
         const GathererDog &GetInitiator(size_t idx) const;
         void AddOffice(const model::Office &office);
         void AddLootObject(const model::LootCoordinates &coord);
-        size_t GatherersCount() const override;
         void AddGatherers(std::vector<GathererDog> gatherers);
 
     private:

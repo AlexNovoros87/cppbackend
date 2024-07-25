@@ -29,13 +29,6 @@ struct LoadConfig{
 namespace model
 {
 
-#define DECLARE_PAIR_STRUCT(Name, Type, n1, Type2, n2) \
-    struct Name                                        \
-    {                                                  \
-        Type n1;                                       \
-        Type2 n2;                                      \
-    }
-
     using Dimension = int;
     using Coord = Dimension;
 
@@ -45,7 +38,7 @@ namespace model
     struct Point
     {
         int x, y;
-        bool operator==(const Point &rhs)
+        bool operator==(const Point &rhs) const
         {
             return ((x == rhs.x) && (y == rhs.y));
         }
@@ -54,7 +47,7 @@ namespace model
     struct Size
     {
         int width, height;
-        bool operator==(const Size &rhs)
+        bool operator==(const Size &rhs) const
         {
             return ((width == rhs.width) && (height == rhs.height));
         }
@@ -70,12 +63,19 @@ namespace model
     };
     using LootCoordinates = DogCoordinates;
 
-    DECLARE_PAIR_STRUCT(Offset, Dimension, dx, Dimension, dy);   // ОТСТУП
-    DECLARE_PAIR_STRUCT(Rectangle, Point, position, Size, size); // ПРЯМОУГОЛЬНИК
-
-    // СОБАКА
-    DECLARE_PAIR_STRUCT(DogSpeed, double, speed_x, double, speed_y); // СКОРОСТЬ ПСА
-
+    struct Offset{
+      Dimension dx, dy;
+    };
+    
+    struct Rectangle{
+       Point position;
+       Size size; 
+    };
+    
+    struct DogSpeed{
+      double speed_x, speed_y;
+    };
+    
     enum RoadOrient
     {
         VERTRICAL,
@@ -121,7 +121,6 @@ namespace model
         double xmax;
         double ymin;
         double ymax;
-
         using ColisionSquare = Limits;
     };
 }

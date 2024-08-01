@@ -1,0 +1,53 @@
+#include "bookypedia.h"
+
+#include <iostream>
+
+#include "menu/menu.h"
+#include "postgres/postgres.h"
+#include "ui/view.h"
+
+namespace bookypedia {
+
+using namespace std::literals;
+
+Application::Application(const AppConfig& config)
+    : db_{pqxx::connection{config.db_url}} {
+}
+
+void Application::Run() {
+    menu::Menu menu{std::cin, std::cout};
+   
+    menu.AddAction("Help"s, {}, "Show instructions"s, [&menu](std::istream&) {
+        menu.ShowInstructions();
+        return true;
+    });
+   
+    menu.AddAction("Exit"s, {}, "Exit program"s, [&menu](std::istream&) {
+        return false;
+    });
+    
+    /*
+class UseCasesImpl : public UseCases {
+public:
+    explicit UseCasesImpl(domain::AuthorRepository& authors)
+        : authors_{authors} {
+    }
+
+    void AddAuthor(const std::string& name) override;
+
+private:
+    domain::AuthorRepository& authors_;
+};
+
+
+  
+    */
+    
+    
+    ui::View view{menu, use_cases_, std::cin, std::cout};
+    
+    
+    menu.Run();
+}
+
+}  // namespace bookypedia

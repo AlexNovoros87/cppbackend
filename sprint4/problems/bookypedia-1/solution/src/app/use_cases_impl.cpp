@@ -27,11 +27,7 @@ namespace app
         // Book(BookId id, std::string name, int date)
         books_.Save(std::move(book), BookId::New().ToString());
     };
-    void UseCasesImpl::ShowBooks(std::ostream &os) {};
-    void UseCasesImpl::ShowBooksByAuthor(std::ostream &os, std::string author)
-    {
-        books_.ShowMyBooksByAuthor(os, std::move(author));
-    };
+ 
     std::vector<ui::detail::BookInfo> UseCasesImpl::GetBookVec()
     {
         return books_.GetBookVec();

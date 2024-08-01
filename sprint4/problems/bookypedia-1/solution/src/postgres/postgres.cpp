@@ -82,34 +82,30 @@ namespace postgres
     void BookRepositoryImpl::Save(ui::detail::AddBookParams book, std::string book_id)
     {
         pqxx::work work{connection_};
-        // std::cout<<book_id<<" -- "<<book.author_id<<" -- "<<book.title<<" -- "<<book.publication_year << std::endl;
         work.exec_params("INSERT INTO books (id, author_id, title, publication_year) VALUES($1, $2, $3, $4);"_zv,
                          book_id, book.author_id, work.quote(book.title), std::to_string(book.publication_year));
         work.commit();
     };
-    void BookRepositoryImpl::ShowMyBooks(std::ostream &os) {};
-    void BookRepositoryImpl::ShowMyBooksByAuthor(std::ostream &os, std::string author) {};
-    std::vector<ui::detail::BookInfo> BookRepositoryImpl::GetBookVec() { 
-        
-         // nazvanie, god publicazii
+
+    std::vector<ui::detail::BookInfo> BookRepositoryImpl::GetBookVec()
+    {
+
+        // nazvanie, god publicazii
         std::vector<ui::detail::BookInfo> book_ord;
 
         pqxx::read_transaction read_tr(connection_);
-    
-        pqxx::result result = read_tr.exec_params(
-            "SELECT title, publication_year FROM books ORDER BY title;"
-            );
 
-        for (const auto &row : result)
+        auto query_text = "SELECT title, publication_year FROM books ORDER BY title;";
+
+        for (auto [title, year] : read_tr.query<std::string, int>(query_text))
         {
-            std::string title = row["title"].as<std::string>();
-            title = title.substr(1);
-            title.pop_back();
-            int year = row["publication_year"].as<int>();
-            book_ord.push_back({std::move(title), year});
+            // title = title.substr(1);
+            // title.pop_back();
+            book_ord.push_back({title, year});
         }
+        
+       
         return book_ord;
-         
     };
     std::vector<ui::detail::BookInfo> BookRepositoryImpl::GetBookVecByAuthor(std::string author)
     {
@@ -117,20 +113,15 @@ namespace postgres
         // nazvanie, god publicazii
         std::vector<ui::detail::BookInfo> book_ord;
         pqxx::read_transaction read_tr(connection_);
-    
-        pqxx::result result = read_tr.exec_params(
-            "SELECT title, publication_year FROM books WHERE author_id = $1",
-            author);
 
-        for (const auto &row : result)
+        auto query_text = "SELECT title, publication_year FROM books WHERE author_id=" + read_tr.quote(author) + ';';
+
+        for (auto [title, year] : read_tr.query<std::string, int>(query_text))
         {
-            std::string title = row["title"].as<std::string>();
-            title = title.substr(1);
-            title.pop_back();
-            int year = row["publication_year"].as<int>();
-            book_ord.push_back({std::move(title), year});
+            // title = title.substr(1);
+            // title.pop_back();
+            book_ord.push_back({title, year});
         }
-
         std::sort(book_ord.begin(), book_ord.end(), [](const ui::detail::BookInfo &lhs, const ui::detail::BookInfo &rhs)
                   {
                       if (lhs.publication_year == rhs.publication_year)

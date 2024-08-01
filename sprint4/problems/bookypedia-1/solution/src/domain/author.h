@@ -80,8 +80,6 @@ private:
 class BookRepository {
 public:
     virtual void Save(ui::detail::AddBookParams book, std::string book_id) = 0;
-    virtual void ShowMyBooks(std::ostream& os) = 0;
-    virtual void ShowMyBooksByAuthor(std::ostream& os, std::string author) = 0;
     virtual std::vector<ui::detail::BookInfo> GetBookVec() = 0;
     virtual std::vector<ui::detail::BookInfo> GetBookVecByAuthor(std::string author) = 0;
 

@@ -15,8 +15,6 @@ namespace app
         virtual std::vector<ui::detail::AuthorInfo> GetAuthorVec() = 0;
 
         virtual void AddBook(ui::detail::AddBookParams book) = 0;
-        virtual void ShowBooks(std::ostream &os) = 0;
-        virtual void ShowBooksByAuthor(std::ostream &os, std::string author) = 0;
         virtual std::vector<ui::detail::BookInfo> GetBookVec() = 0;
         virtual std::vector<ui::detail::BookInfo> GetBookVecByAuthor(std::string author) = 0;
 

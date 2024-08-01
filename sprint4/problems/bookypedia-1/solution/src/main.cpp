@@ -8,10 +8,13 @@ using namespace std::literals;
 
 namespace {
 
-constexpr const char DB_URL_ENV_NAME[] ="BOOKYPEDIA_DB_URL";
+constexpr const char DB_URL_ENV_NAME[]{"BOOKYPEDIA_DB_URL"};
 
 bookypedia::AppConfig GetConfigFromEnv() {
     bookypedia::AppConfig config;
+    // std::cout<<DB_URL_ENV_NAME<<std::endl;
+    // std::cout<<std::boolalpha<<( std::getenv(DB_URL_ENV_NAME) == nullptr)<<std::endl;
+    
     if (const auto* url =  std::getenv(DB_URL_ENV_NAME) ) {
         
         config.db_url = url;

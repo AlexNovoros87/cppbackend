@@ -16,8 +16,6 @@ public:
 
 
     void AddBook(ui::detail::AddBookParams book) override;
-    void ShowBooks(std::ostream &os) override;
-    void ShowBooksByAuthor(std::ostream &os, std::string author) override;
     std::vector<ui::detail::BookInfo> GetBookVec() override;
     std::vector<ui::detail::BookInfo> GetBookVecByAuthor(std::string author) override;
 

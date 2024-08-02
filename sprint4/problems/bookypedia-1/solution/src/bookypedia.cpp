@@ -25,25 +25,7 @@ void Application::Run() {
     menu.AddAction("Exit"s, {}, "Exit program"s, [&menu](std::istream&) {
         return false;
     });
-    
-    /*
-class UseCasesImpl : public UseCases {
-public:
-    explicit UseCasesImpl(domain::AuthorRepository& authors)
-        : authors_{authors} {
-    }
-
-    void AddAuthor(const std::string& name) override;
-
-private:
-    domain::AuthorRepository& authors_;
-};
-
-
-  
-    */
-    
-    
+      
     ui::View view{menu, use_cases_, std::cin, std::cout};
     
     

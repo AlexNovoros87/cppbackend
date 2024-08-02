@@ -15,6 +15,7 @@ namespace postgres
         // В будущих уроках вы узнаете про паттерн Unit of Work, при помощи которого сможете несколько
         // запросов выполнить в рамках одной транзакции.
         // Вы также может самостоятельно почитать информацию про этот паттерн и применить его здесь.
+      //  std::cerr<<"->"<<author.GetName()<<"<-"<<std::endl;
         pqxx::work work{connection_};
         work.exec_params(
             R"(
@@ -42,7 +43,6 @@ ON CONFLICT (id) DO UPDATE SET name=$2;
 
         pqxx::read_transaction read_tr(connection_);
         pqxx::zview query_text = "SELECT id, name FROM authors ORDER BY name"_zv;
-        int ida = 1;
         for (auto [id, name] : read_tr.query<std::string, std::string>(query_text))
         {
             vc.push_back({std::move(id), std::move(name)});
@@ -83,7 +83,7 @@ namespace postgres
     {
         pqxx::work work{connection_};
         work.exec_params("INSERT INTO books (id, author_id, title, publication_year) VALUES($1, $2, $3, $4);"_zv,
-                         book_id, book.author_id, work.quote(book.title), std::to_string(book.publication_year));
+                         book_id, book.author_id, book.title, std::to_string(book.publication_year));
         work.commit();
     };
 
@@ -97,11 +97,9 @@ namespace postgres
 
         auto query_text = "SELECT title, publication_year FROM books ORDER BY title;";
 
-        for (auto [title, year] : read_tr.query<std::string, int>(query_text))
+        for (auto [title, year] : read_tr.query<std::string, std::string>(query_text))
         {
-            // title = title.substr(1);
-            // title.pop_back();
-            book_ord.push_back({title, year});
+            book_ord.push_back({title, stoi(year)});
         }
         
        
@@ -114,13 +112,12 @@ namespace postgres
         std::vector<ui::detail::BookInfo> book_ord;
         pqxx::read_transaction read_tr(connection_);
 
-        auto query_text = "SELECT title, publication_year FROM books WHERE author_id=" + read_tr.quote(author) + ';';
-
+       std::string query_text = "SELECT title, publication_year FROM books WHERE author_id = '" + author + "';";
+       
         for (auto [title, year] : read_tr.query<std::string, int>(query_text))
         {
-            // title = title.substr(1);
-            // title.pop_back();
-            book_ord.push_back({title, year});
+           
+            book_ord.push_back({title, year}); 
         }
         std::sort(book_ord.begin(), book_ord.end(), [](const ui::detail::BookInfo &lhs, const ui::detail::BookInfo &rhs)
                   {

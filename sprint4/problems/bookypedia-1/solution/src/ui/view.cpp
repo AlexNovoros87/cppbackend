@@ -56,7 +56,12 @@ bool View::AddAuthor(std::istream& cmd_input) const {
         std::string name;
         std::getline(cmd_input, name);
         boost::algorithm::trim(name);
+        
+        if(name.empty()) throw std::logic_error("EMPTY AUTHOR NAME");
         use_cases_.AddAuthor(std::move(name));
+    
+    
+    
     } catch (const std::exception&) {
         output_ << "Failed to add author"sv << std::endl;
     }
@@ -64,25 +69,48 @@ bool View::AddAuthor(std::istream& cmd_input) const {
 }
 
 bool View::AddBook(std::istream& cmd_input) const {
-    try {
+    
         if (auto params = GetBookParams(cmd_input)) {
-           
-           
+           //ЕСЛИ ПУСТОЕ ИМЯ КНИГИ ВОЗВРАЩАЕМСЯ
+           if((*params).title.empty()) return false;
             use_cases_.AddBook(std::move(*params));  
-
-
-            
         }
-    } catch (const std::exception&) {
-        output_ << "Failed to add book"sv << std::endl;
-    }
+      else{
+         //ЕСЛИ ПУСТОЕ ЗНАЧЕНИЕ ВОЗВРАЩАЕМСЯ
+         return false;
+      }
+
+  
     return true;
 }
+
+bool View::ShowAuthorBooks() const {
+    // TODO: handle error
+  
+        if (auto author_id = SelectAuthor()) {
+           boost::algorithm::trim(*author_id);
+           if((*author_id).empty()) return false; 
+           PrintVector(output_, GetAuthorBooks(*author_id));
+        }
+        else{
+          return false; 
+        }
+
+    return true;
+}
+
+
+
+
+
+
+
+
 
 bool View::ShowAuthors() const {
    
    PrintVector(output_, GetAuthors());
-   // use_cases_.ShowAuthors(output_);
+  
     
     return true;
 }
@@ -92,18 +120,7 @@ bool View::ShowBooks() const {
     return true;
 }
 
-bool View::ShowAuthorBooks() const {
-    // TODO: handle error
-    try {
-        if (auto author_id = SelectAuthor()) {
-           PrintVector(output_, GetAuthorBooks(*author_id));
-        
-        }
-    } catch (const std::exception&) {
-        throw std::runtime_error("Failed to Show Books");
-    }
-    return true;
-}
+
 
 std::optional<detail::AddBookParams> View::GetBookParams(std::istream& cmd_input) const {
     detail::AddBookParams params;

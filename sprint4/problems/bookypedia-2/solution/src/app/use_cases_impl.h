@@ -43,7 +43,6 @@ namespace app
 
         void DeleteAuthor(const std::string &name, pqxx::work &work) override
         {
-
             //std::string find_auth = "SELECT id FROM authors WHERE name = '" + name + "';";
             //auto [auth_id] = work.query1<std::string>(find_auth);
             auto row = work.exec_prepared1(p::GET_AUTHOR_ID_BY_AUTHOR_NAME,name);
@@ -54,7 +53,7 @@ namespace app
 
             for (auto [bk_id] : work.exec_prepared(p::GET_BOOK_ID_BY_AUTHOR_ID, auth_id).iter<std::string>())
             {
-            
+                
                 book_idis.push_back(std::move(bk_id));
             }
             
@@ -80,19 +79,21 @@ namespace app
              if (refreshes.new_title)
             {
                // "UPDATE books SET title = '" + *refreshes.new_title + "' WHERE id = '" + refreshes.book_id + "';";
-                work.exec_prepared(p::UPDATE_BOOK_YEAR_BY_ID, *refreshes.new_title, refreshes.book_id );
+                work.exec_prepared(p::UPDATE_BOOK_TITLE_BY_ID, *refreshes.new_title, refreshes.book_id );
             }
-
+        //    std::cout<<"ONE PASS"<<std::endl;
             if (refreshes.publication_year)
             {
                //"UPDATE books SET publication_year = '" + std::to_string(*refreshes.publication_year) + "' WHERE id = '" + refreshes.book_id + "';";
                work.exec_prepared(p::UPDATE_BOOK_YEAR_BY_ID,*refreshes.publication_year, refreshes.book_id );
             }
-
+        //    std::cout<<"TWO PASS"<<std::endl;
             if (refreshes.tags)
             {
                  // "DELETE FROM book_tags WHERE book_id = " + work.quote(refreshes.book_id) + " ;";
                  work.exec_prepared(p::DELETE_TAGS_BY_BOOK_ID,refreshes.book_id);
+
+           //      std::cout<<"THREE PASS"<<std::endl;
 
                 for (const std::string &tag : *refreshes.tags)
                 {
@@ -100,6 +101,7 @@ namespace app
                     //VALUES(" + work.quote(refreshes.book_id) + ", " + work.quote(tag) + ");";
                     work.exec_prepared(p::INSERT_TAG, refreshes.book_id, tag);   
                 }
+           //   std::cout<<"FOUR PASS"<<std::endl;
             };
         };
 
@@ -203,6 +205,7 @@ CREATE TABLE IF NOT EXISTS authors
 
 CREATE TABLE IF NOT EXISTS books
 (
+
     id UUID PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     publication_year INT,

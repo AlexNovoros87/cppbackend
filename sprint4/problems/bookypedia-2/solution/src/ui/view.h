@@ -42,7 +42,15 @@ private:
 
 
     ui::detail::BookRefreshes GetBookRefreshes(ui::detail::BookInfo info) const;
-    ui::detail::BookRefreshes GetBookRefreshesFromVector(std::vector<ui::detail::BookInfo> vec) const;
+
+
+    void ClearInput() const {
+        while (input_.peek() == '\n' || input_.peek() == '\0' || input_.peek() == '\r' || input_.peek() == ' ')
+        {
+            input_.get();
+        }
+        
+    }
 
     menu::Menu& menu_;
     app::UseCases& use_cases_;

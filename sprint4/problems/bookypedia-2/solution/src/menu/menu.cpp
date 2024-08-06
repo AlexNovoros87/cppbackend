@@ -2,6 +2,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <boost/algorithm/string.hpp>
 
 namespace menu {
 
@@ -23,6 +24,8 @@ void Menu::AddAction(std::string action_name, std::string args, std::string desc
 void Menu::Run() {
     std::string line;
     while (std::getline(input_, line)) {
+        boost::algorithm::trim(line);
+        
         std::istringstream cmd_stream{std::move(line)};
         if (!ParseCommand(cmd_stream)) {
             break;

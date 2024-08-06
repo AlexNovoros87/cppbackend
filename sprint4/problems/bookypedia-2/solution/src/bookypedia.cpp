@@ -1,6 +1,7 @@
 #include "bookypedia.h"
 
 #include <iostream>
+#include <sstream>
 
 #include "menu/menu.h"
 #include "postgres/postgres.h"
@@ -23,7 +24,9 @@ void Application::Run() {
     menu.AddAction("Exit"s, {}, "Exit program"s, [&menu](std::istream&) {
         return false;
     });
-      
+          
+    
+    
     ui::View view{menu, use_cases_, std::cin, std::cout};
     menu.Run();
 }

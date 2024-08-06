@@ -85,23 +85,17 @@ namespace postgres
         }
 
        
-        std::sort(book_ord.begin(), book_ord.end(), [](const ui::detail::BookInfo &lhs, const ui::detail::BookInfo &rhs)
-                  {
-                      bool eq_auth = (lhs.author_name == rhs.author_name);
-                      bool eq_tit = (lhs.title == rhs.title);
-                      bool eq_all = (eq_tit && eq_auth);
+        // std::sort(book_ord.begin(), book_ord.end(), [](const ui::detail::BookInfo &lhs, const ui::detail::BookInfo &rhs)
+        //           {
+                    
+        //             if (lhs.author_name != rhs.author_name){
+        //             return lhs.author_name < rhs.author_name;
+        //         }
+        //         return lhs.publication_year < rhs.publication_year;
+                      
+        //     });
 
-                      if (eq_all)
-                      {
-                          return lhs.publication_year < rhs.publication_year;
-                      }
-                      else if (eq_tit)
-                      {
-                          return lhs.author_name < rhs.author_name;
-                      }
-                      return lhs.title < rhs.title; });
-
-        return book_ord;
+         return book_ord;
     };
 
     void BookRepositoryImpl::Save(ui::detail::AddBookParams book, std::string book_id, pqxx::work &work)
@@ -138,19 +132,17 @@ namespace postgres
 
         std::sort(book_ord.begin(), book_ord.end(), [](const ui::detail::BookInfo &lhs, const ui::detail::BookInfo &rhs)
                   {
-                      bool eq_auth = (lhs.author_name == rhs.author_name);
-                      bool eq_tit = (lhs.title == rhs.title);
-                      bool eq_all = (eq_tit && eq_auth);
-
-                      if (eq_all)
-                      {
-                          return lhs.publication_year < rhs.publication_year;
-                      }
-                      else if (eq_tit)
-                      {
-                          return lhs.author_name < rhs.author_name;
-                      }
-                      return lhs.title < rhs.title; });
+                  
+                      
+                if(lhs.title != rhs.title){
+                    return lhs.title < rhs.title;
+                }
+                else if (lhs.author_name != rhs.author_name){
+                    return lhs.author_name < rhs.author_name;
+                }
+                return lhs.publication_year < rhs.publication_year;      
+                      
+               });
 
         return book_ord;
     };

@@ -32,9 +32,7 @@ namespace app
         std::vector<ui::detail::BookInfo> GetBooksByTitle(std::string title, pqxx::work &work) override;
 
         void DeleteBook(const std::string &bookid, pqxx::work &work) override
-        {
-           std::cout<<bookid<<std::endl;
-            
+        {   
              // std::string del_tags = "DELETE FROM book_tags WHERE book_id = '" + bookid + "';";
             work.exec_prepared(p::DELETE_TAGS_BY_BOOK_ID,bookid);
             // std::string del_book = "DELETE FROM books WHERE id = '" + bookid + "';";

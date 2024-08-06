@@ -137,25 +137,21 @@ namespace ui
     ui::detail::BookRefreshes View::GetBookRefreshesFromVector(std::vector<ui::detail::BookInfo> vec) const
     {
         PrintVector(output_, vec);
-        int ind;
-        input_ >> ind;
-
+        
         std::string tmp;
         std::getline(input_, tmp);
-
+        size_t t;
+        
+        int ind = std::stoi(tmp, &t);
+        if(t!= tmp.size()) throw std::runtime_error("NON CORR NUM");
+        
         if (ind < 1 || ind > vec.size())
             throw std::runtime_error("NON CORR NUM");
 
         return GetBookRefreshes(vec[ind - 1]);
     };
 
-     /*
-                int ind;
-                input_ >> ind;
 
-                std::string tmp;
-                std::getline(input_, tmp);
-    */
     
     
      void PrintVectorWithoutTitles(std::ostream &out, const std::vector<ui::detail::BookInfo> &vector)
@@ -302,7 +298,7 @@ namespace ui
             std::string bookname;
             std::getline(cmd_input, bookname);
             boost::algorithm::trim(bookname);
-            
+           
             std::vector<ui::detail::BookInfo> books;
 
             if (bookname.empty())
@@ -311,7 +307,7 @@ namespace ui
                 books = use_cases_.GetBooksByTitle(bookname, work);
 
             if (books.empty())
-                throw std::runtime_error("Book not found");
+                throw std::runtime_error("");
 
             ui::detail::BookRefreshes REFRESHES;
 
@@ -362,8 +358,12 @@ namespace ui
                 auto v = GetAuthors(work);
                 output_ << "Select Author:" << std::endl;
                 PrintVector(output_, v);
+                output_<<"Enter author # or empty line to cancel"<<std::endl;
+                
                 std::string tmp;
                 std::getline(input_,tmp);
+                if(tmp.empty()) throw std::runtime_error("autor adding abort");
+
                 
                 size_t t;
                 int ind = std::stoi(tmp, &t);
@@ -401,7 +401,7 @@ namespace ui
         {
             auto work = use_cases_.StartTranzaction();
             std::string bookname;
-            cmd_input >> bookname;
+            std::getline(cmd_input , bookname);
             boost::algorithm::trim(bookname);
             std::vector<ui::detail::BookInfo> books;
 
@@ -423,15 +423,21 @@ namespace ui
             else
             {
                 PrintVector(output_, books);
-                int ind = 0;
-                input_ >> ind;
+                
+                std::string tmp;
+                std::getline(input_, tmp);
+                if(tmp.empty()) throw std::runtime_error("");
+                
+                size_t t;
+                int ind = stoi(tmp,&t);
+
+                if(t!= tmp.size()) throw std::runtime_error("");
+                
+                
                 if (ind < 1 || ind > books.size())
                     throw std::runtime_error("NON CORR NUM");
 
-                std::string tmp;
-                std::getline(input_, tmp);
-
-             //   std:: << "NOW I WILL DEL" << std::endl;
+    
                 use_cases_.DeleteBook(books[ind - 1].book_id, work);
             }
             work.commit();
@@ -613,13 +619,12 @@ namespace ui
     
     std::optional<detail::AddBookParams> View::GetBookParams(std::istream &cmd_input, pqxx::work &work) const
     {
-        detail::AddBookParams params;
+         detail::AddBookParams params;
         auto y_n = YearAndName(cmd_input);
         
         params.publication_year = y_n.first;
         params.title = std::move(y_n.second); 
-                 
-        
+
         output_ << "Enter author name or empty line to select from list:" << std::endl;
         std::string author_name;
         std::getline(input_, author_name);

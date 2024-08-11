@@ -88,14 +88,11 @@ namespace request_handler
     {
       OffLim offlim = Offset_Limit(parsed_target_[3]);
 
-      if (offlim.offset > 100) {throw std::logic_error("limit over");}
+      if (offlim.limit < 0 || offlim.offset > 100) {throw std::logic_error("limit over");}
      
       std::string body = sql::SQL::GetRecords(offlim.offset, offlim.limit);
      
       return Make200JSB(req_.version(), req_.keep_alive(), std::move(body));
-    
-    
-    
     }
     catch (const std::exception &ex)
     {
@@ -150,6 +147,8 @@ namespace request_handler
       std::cout << ex.what() << std::endl;
 #endif
 
+     
+     
       // ОТВЕТ В СЛУЧАЕ ОШИБКИ
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string("ERROR IN TICK"));
@@ -323,7 +322,7 @@ namespace request_handler
   template <typename Requester>
   VariantResponse APIHandler<Requester>::State()
   {
-
+    
     // ЗАПУСК ПАТТЕРНА ПРОВЕРКИ АВТОРИЗАЦИИ
     auto action = UseAutorizationPattern();
     // ЕСЛИ ВЕРНУЛСЯ СФОРМИРОВАНЫЙ ОТВЕТ - ВОЗВРАЩАЕМ ЕГО
@@ -337,6 +336,7 @@ namespace request_handler
     std::shared_ptr<model::GameSession> sess = player->PlayersSession();
     // ВОЗВРАЩАЕМ ОТВЕТ
     return Make200State(req_.version(), req_.keep_alive(), sess);
+  
   }
 
   template <typename Requester>

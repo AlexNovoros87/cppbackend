@@ -40,13 +40,15 @@ void Add_Console_Log()
 int main(int argc, const char *argv[])
 {
 
+  
+    
     try
     {
         auto params = ParseCommandLine(argc, argv);
 
         if (params)
         {
-
+         
             Add_Console_Log();
             using namespace model;
 

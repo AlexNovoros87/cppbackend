@@ -64,7 +64,7 @@ namespace sql
       pqxx::transaction trz{conn};
 
       // СТРОИМ ТАБЛИЦУ
-      trz.exec(R"(
+      trz.exec (R"(
       CREATE TABLE IF NOT EXISTS retired_players
       (
           id UUID PRIMARY KEY,
@@ -73,7 +73,15 @@ namespace sql
           play_time_ms INT NOT NULL
           
       );
+
+      CREATE INDEX IF NOT EXISTS retired_players_score_playtime_name_idx ON retired_players (
+      score DESC, play_time_ms, name
+      );
       )"_zv);
+      
+      
+      
+      
       trz.commit();
     }
 

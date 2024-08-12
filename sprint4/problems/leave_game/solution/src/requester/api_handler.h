@@ -78,20 +78,17 @@ namespace request_handler
       return Make405JSB(req_.version(), req_.keep_alive(),
                         std::string(req_static_str::invalidMethod), std::string(reason_to_human::Invalid_method),
                         std::string(req_static_str::Allowed_GET_HEAD));
-
-    if (req_[HttpHeader::content_type] != type_content.at(Extensions::json))
-    {
-     // return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "Invalid Content Type");
-    }
-
     try
     {
       OffLim offlim = Offset_Limit(parsed_target_[3]);
 
-      if (offlim.limit < 0 || offlim.offset > 100) {throw std::logic_error("limit over");}
-     
+      if (offlim.limit < 0 || offlim.offset > 100)
+      {
+        throw std::logic_error("limit over");
+      }
+
       std::string body = sql::SQL::GetRecords(offlim.offset, offlim.limit);
-     
+
       return Make200JSB(req_.version(), req_.keep_alive(), std::move(body));
     }
     catch (const std::exception &ex)
@@ -99,6 +96,10 @@ namespace request_handler
       // ОТВЕТ В СЛУЧАЕ ОШИБКИ
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string("ERROR IN RECORDS"));
+    }
+     catch (...)
+    {
+       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),"RECORD ERROR UNKNOWN");
     }
     return {};
   }
@@ -128,16 +129,22 @@ namespace request_handler
       json::value object = json::parse(req_.body());
 
       if (!object.as_object().at(req_static_str::timeDelta).is_number())
+      {
         throw std::invalid_argument("Not correct delta");
+      }
 
       // ПОЛУЧАЕМ ДЕЛЬТУ ВРЕМЕНИ
       int64_t delta = object.as_object().at(req_static_str::timeDelta).as_int64();
       double d_time = static_cast<double>(delta);
+
       if (std::isnan(d_time) || std::isinf(d_time) || d_time == std::numeric_limits<double>::min() || d_time == std::numeric_limits<double>::max())
+      {
         throw std::invalid_argument("Not correct delta");
+      }
 
       game_.ManualTick(d_time);
 
+      // ДЕЛАЕМ ПУСТОЙ ОБЬЕКТ ДЛЯ СЕРИАЛИЗАЦИИ БУДУТ {}
       json::object obj;
       return Make200JSB(req_.version(), req_.keep_alive(), json::serialize(obj));
     }
@@ -147,12 +154,15 @@ namespace request_handler
       std::cout << ex.what() << std::endl;
 #endif
 
-     
-     
       // ОТВЕТ В СЛУЧАЕ ОШИБКИ
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
-                        std::string("ERROR IN TICK"));
+                        std::string("ERROR TICK ---->" + std::string(ex.what())));
     }
+    catch (...)
+    {
+      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "ERROR TICK UNKNOWN");
+    }
+
     return {};
   }
 
@@ -168,6 +178,9 @@ namespace request_handler
   VariantResponse APIHandler<Requester>::GetHeadApi()
   {
 
+    
+    try{
+    
     // ПРОВЕРЯЕМ МЕТОД ЗАПРОСА
     if (req_.method() != RequestMethod::get && req_.method() != RequestMethod::head)
       return Make405JSB(req_.version(), req_.keep_alive(),
@@ -207,6 +220,19 @@ namespace request_handler
 #endif
     response.prepare_payload();
     return response;
+    }
+     catch (...)
+    {
+       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),"MAP ERROR UNKNOWN");
+    }
+  
+  
+  
+  
+  
+  
+  
+  
   };
 
   template <typename Requester>
@@ -255,6 +281,10 @@ namespace request_handler
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string(reason_to_human::Join_game_request_parse_error));
     }
+     catch (...)
+    {
+       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),"JOIN ERROR UNKNOWN");
+    }
     return {};
   };
 
@@ -299,44 +329,65 @@ namespace request_handler
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string(reason_to_human::Players_parse_error));
     }
+     catch (...)
+    {
+       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),"AUTHPATTERN ERROR UNKNOWN");
+    }
+  
+  
+  
   };
 
   template <typename Requester>
   VariantResponse APIHandler<Requester>::Players()
   {
-    // ЗАПУСК ПАТТЕРНА ПРОВЕРКИ АВТОРИЗАЦИИ
-    auto action = UseAutorizationPattern();
-    // ЕСЛИ ВЕРНУЛСЯ СФОРМИРОВАНЫЙ ОТВЕТ - ВОЗВРАЩАЕМ ЕГО
-    if (std::holds_alternative<VariantResponse>(action))
+
+    try
     {
-      return std::move(std::get<VariantResponse>(action));
+      // ЗАПУСК ПАТТЕРНА ПРОВЕРКИ АВТОРИЗАЦИИ
+      auto action = UseAutorizationPattern();
+      // ЕСЛИ ВЕРНУЛСЯ СФОРМИРОВАНЫЙ ОТВЕТ - ВОЗВРАЩАЕМ ЕГО
+      if (std::holds_alternative<VariantResponse>(action))
+      {
+        return std::move(std::get<VariantResponse>(action));
+      }
+      // ЕСЛИ В ЭКШН ВЕРНУЛСЯ УКАЗАТЕЛЬ С КОТОРОГО НУЖНЫ ДОП.ДАННЫЕ
+      auto player = std::move(std::get<std::shared_ptr<api::Player>>(action));
+      // ПОЛУЧАЕМ ДЖИСОН ПРЕДСТАВЛЕНИЕ СЕССИИ
+      std::string tmp = obs_.GetJSONSession(player);
+      // ВОЗВРАЩАЕМ ОТВЕТ
+      return Make200JSB(req_.version(), req_.keep_alive(), std::move(tmp));
     }
-    // ЕСЛИ В ЭКШН ВЕРНУЛСЯ УКАЗАТЕЛЬ С КОТОРОГО НУЖНЫ ДОП.ДАННЫЕ
-    auto player = std::move(std::get<std::shared_ptr<api::Player>>(action));
-    // ПОЛУЧАЕМ ДЖИСОН ПРЕДСТАВЛЕНИЕ СЕССИИ
-    std::string tmp = obs_.GetJSONSession(player);
-    // ВОЗВРАЩАЕМ ОТВЕТ
-    return Make200JSB(req_.version(), req_.keep_alive(), std::move(tmp));
+    catch (...)
+    {
+      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "PLAYERS ERROR UNKNOWN");
+    }
   }
 
   template <typename Requester>
   VariantResponse APIHandler<Requester>::State()
   {
-    
-    // ЗАПУСК ПАТТЕРНА ПРОВЕРКИ АВТОРИЗАЦИИ
-    auto action = UseAutorizationPattern();
-    // ЕСЛИ ВЕРНУЛСЯ СФОРМИРОВАНЫЙ ОТВЕТ - ВОЗВРАЩАЕМ ЕГО
-    if (std::holds_alternative<VariantResponse>(action))
+
+    try
     {
-      return std::move(std::get<VariantResponse>(action));
+      // ЗАПУСК ПАТТЕРНА ПРОВЕРКИ АВТОРИЗАЦИИ
+      auto action = UseAutorizationPattern();
+      // ЕСЛИ ВЕРНУЛСЯ СФОРМИРОВАНЫЙ ОТВЕТ - ВОЗВРАЩАЕМ ЕГО
+      if (std::holds_alternative<VariantResponse>(action))
+      {
+        return std::move(std::get<VariantResponse>(action));
+      }
+      // ЕСЛИ В ЭКШН ВЕРНУЛСЯ УКАЗАТЕЛЬ С КОТОРОГО НУЖНЫ ДОП.ДАННЫЕ
+      auto player = std::move(std::get<std::shared_ptr<api::Player>>(action));
+      // ПОЛУЧАЕМ СЕССИЮ ИГРОКА
+      std::shared_ptr<model::GameSession> sess = player->PlayersSession();
+      // ВОЗВРАЩАЕМ ОТВЕТ
+      return Make200State(req_.version(), req_.keep_alive(), sess);
     }
-    // ЕСЛИ В ЭКШН ВЕРНУЛСЯ УКАЗАТЕЛЬ С КОТОРОГО НУЖНЫ ДОП.ДАННЫЕ
-    auto player = std::move(std::get<std::shared_ptr<api::Player>>(action));
-    // ПОЛУЧАЕМ СЕССИЮ ИГРОКА
-    std::shared_ptr<model::GameSession> sess = player->PlayersSession();
-    // ВОЗВРАЩАЕМ ОТВЕТ
-    return Make200State(req_.version(), req_.keep_alive(), sess);
-  
+    catch (...)
+    {
+      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "STATE ERROR UNKNOWN");
+    }
   }
 
   template <typename Requester>
@@ -399,6 +450,10 @@ namespace request_handler
       // ОТВЕТ В СЛУЧАЕ ОШИБКИ
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string("ERROR IN PLAYER ACTION"));
+    }
+    catch (...)
+    {
+      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "MOVE ERROR UNKNOWN");
     }
     return {};
   };

@@ -19,16 +19,7 @@ namespace api
       
     }
 
-    // ПРОВЕРКА ЧТО БЫ НЕ ЗАБЫТЬ УСТАНОВТЬ ВРЕМЯ
-    void TCC::Check()
-    {
-      if (retire_time_ == std::chrono::microseconds(0))
-      {
-        std::cerr << "RetTime was not setuped" << std::endl;
-        std::abort();
-      }
-    }
-
+   
     void TCC::JoinToTimeObserve(const std::string &map, size_t id_pl, const std::string &token_pl,
     const std::chrono::system_clock::time_point& servertime)
     {
@@ -43,8 +34,8 @@ namespace api
       time_entered_[map][id_pl] = tcp;
       activity_[map][id_pl] = {MoveStautus::STANDING, tcp};
       //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      
-      info_[map][id_pl] = std::move(params);
+       info_[map][id_pl] = std::move(params);
+    
     }
 
    
@@ -60,7 +51,6 @@ namespace api
        (servertime - activity_.at(map).at(id_pl).time_point);
        
        if(difftime < retire_time_){
-          // activity_.at(map).at(id_pl).time_point += delta;
            return std::nullopt;
        }
       

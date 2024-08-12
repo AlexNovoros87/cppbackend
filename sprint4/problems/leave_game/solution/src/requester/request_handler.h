@@ -39,8 +39,12 @@ namespace request_handler
            auto handle = [self = shared_from_this(), send,
                                     req = std::forward<decltype(req)>(req), &parsed_target ] {
                          try {
+                            
+                            
                              // Этот assert не выстрелит, так как лямбда-функция будет выполняться внутри strand
                              assert(self->api_strand_.running_in_this_thread());
+                            
+                            
                              return send(APIHandler(std::move(std::move(req)), self->game_, parsed_target).MakeResponce());
                           } catch (...) {
                             

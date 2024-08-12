@@ -23,11 +23,10 @@ namespace api
     }
   };
 
-  Play::Play(model::Game game, double def_spd, bool rand, bool a_tick) : 
-  game_(std::move(game)), def_speed_(def_spd), random_(rand), auto_tick_(a_tick),
-  serv_time_ {std::chrono::system_clock::now()}
+  Play::Play(model::Game game, double def_spd, bool rand, bool a_tick) : game_(std::move(game)), def_speed_(def_spd), random_(rand), auto_tick_(a_tick),
+                                                                         serv_time_{std::chrono::system_clock::now()}
   {
-    
+
     InitSessions();
     BuildSortedRoadsToRandomizer();
     BuildGraph();
@@ -127,39 +126,51 @@ namespace api
 // GAME TICK HELP
 namespace api
 {
-void DoEvent(collision_detector::GatheringEventMOD &event, GameSession &sess)
+  void DoEvent(collision_detector::GatheringEventMOD &event, GameSession &sess)
   {
-    //ЕСЛИ КОЛИЗИЯ С ОФИСОМ
+    // ЕСЛИ КОЛИЗИЯ С ОФИСОМ
     if (event.event_kind == collision_detector::ItemType::OFFICE)
     {
-      //ПОЛУЧАЕМ СУМКУ ИНИЦИАТОРА
-      auto & lootbag = event.initiator->GetLootBag();
-      for(auto && loot : lootbag){
-        //ПОЛУЧАЕМ ЦЕНУ С ПРЕДМЕТА С ФРОНЕНД ОБЪЕКТА
-        int scores = frontend::FrontEndLoot::GetPriceScore(sess.GetMap().GetName() ,loot.type); 
-        //НАЧИСЛЯЕМ ПРЕМИЮ СОБАКЕ.
+      // ПОЛУЧАЕМ СУМКУ ИНИЦИАТОРА
+      auto &lootbag = event.initiator->GetLootBag();
+      for (auto &&loot : lootbag)
+      {
+        // ПОЛУЧАЕМ ЦЕНУ С ПРЕДМЕТА С ФРОНЕНД ОБЪЕКТА
+        int scores = frontend::FrontEndLoot::GetPriceScore(sess.GetMap().GetName(), loot.type);
+        // НАЧИСЛЯЕМ ПРЕМИЮ СОБАКЕ.
         event.initiator->TakeScores(scores);
       }
-      
-      //СБРОСИТЬ ЛУТ
+
+      // СБРОСИТЬ ЛУТ
       event.initiator->ThrowLoot();
     }
-    //ЕСЛИ КОЛИЗИЯ С ЛУТОМ
+    // ЕСЛИ КОЛИЗИЯ С ЛУТОМ
     else
     {
-      //ПОЛУЧАЕМ СПИСОК ЛУТА НА СЕССИИ
+      // ПОЛУЧАЕМ СПИСОК ЛУТА НА СЕССИИ
       auto &lost_loot = sess.GetLootListNotConst();
-      //ПОЛУЧАЕМ МАКС РАЗМЕР СУМКИ НА СЕССИИ
+      // ПОЛУЧАЕМ МАКС РАЗМЕР СУМКИ НА СЕССИИ
       size_t bag_capacity_on_level = sess.GetMap().GetBagCapacity();
-      //ЕСЛИ ХВАТАЕТ МЕСТА В СУМКЕ
+      // ЕСЛИ ХВАТАЕТ МЕСТА В СУМКЕ
+
       if (event.initiator->GetLootBag().size() < bag_capacity_on_level)
       {
-        //ПОДНЯТЬ ПРЕДМЕТ
-        event.initiator->PickUpLoot(std::move(lost_loot.at(event.where)));
-        //СТЕРЕТЬ ПРЕДМЕТ ИЗ БАЗЫ ПОТЕРЯННЫХ ВЕЩЕЙ 
-        lost_loot.erase(event.where);
+
+        try
+        {
+          
+          if(lost_loot.count(event.where)){
+          // ПОДНЯТЬ ПРЕДМЕТ
+          event.initiator->PickUpLoot(std::move(lost_loot.at(event.where)));
+          // СТЕРЕТЬ ПРЕДМЕТ ИЗ БАЗЫ ПОТЕРЯННЫХ ВЕЩЕЙ
+          lost_loot.erase(event.where);
+          }
+        }
+        catch (const std::exception &ex)
+        {
+          throw std::logic_error("IN PICKUP LOOT" + std::string(ex.what()));
+        }
       }
-      
     }
   }
 
@@ -167,27 +178,52 @@ void DoEvent(collision_detector::GatheringEventMOD &event, GameSession &sess)
   {
     // СОЗДАТЬ НАСЛЕДНИКА
     collision_detector::Collizer situation_queuer_;
-    //ПЕРЕДАТЬ СОБИРАТЕЛЕЙ
-    situation_queuer_.AddGatherers(std::move(gathers));
-
-    //ДОБАВИТЬ ВЕСЬ ЛУТ С КАРТЫ
-    for (auto &&loot : sess.GetLootList())
+    // ПЕРЕДАТЬ СОБИРАТЕЛЕЙ
+    try
     {
-      situation_queuer_.AddLootObject(loot.first);
+
+      situation_queuer_.AddGatherers(std::move(gathers));
+
+      // ДОБАВИТЬ ВЕСЬ ЛУТ С КАРТЫ
+      for (auto &&loot : sess.GetLootList())
+      {
+        situation_queuer_.AddLootObject(loot.first);
+      }
+
+      // ДОБАВИТЬ ВСЕ ОФИСЫ
+      for (auto office : sess.GetMap().GetOffices())
+      {
+        situation_queuer_.AddOffice(office);
+      }
+    }
+    catch (std::exception &ex)
+    {
+      throw std::logic_error("UpdateEventChronology PART1");
     }
 
-    //ДОБАВИТЬ ВСЕ ОФИСЫ
-    for (auto office : sess.GetMap().GetOffices())
-    {
-      situation_queuer_.AddOffice(office);
-    }
-    
-    //ПОСТРОИТЬ ХРОНОЛОГИЮ СОБЫТИЙ
-    auto chronology = collision_detector::FindGatherEventsOrder(situation_queuer_);
+    std::vector<collision_detector::GatheringEventMOD> chronology;
 
-    //ВЫПОЛНИТЬ СОБЫТИЯ
-    for(auto& event : chronology){
-      DoEvent(event, sess);
+    try
+    {
+      // ПОСТРОИТЬ ХРОНОЛОГИЮ СОБЫТИЙ
+      chronology = collision_detector::FindGatherEventsOrder(situation_queuer_);
+    }
+    catch (std::exception &ex)
+    {
+      throw std::logic_error("ERROR IN FindGatherEventsOrder");
+    }
+
+    try
+    {
+      // ВЫПОЛНИТЬ СОБЫТИЯ
+      for (auto &event : chronology)
+      {
+        DoEvent(event, sess);
+      }
+    }
+    catch (std::exception &ex)
+    {
+      throw std::logic_error("ERROR IN DoEvent" + std::string(ex.what()));
     }
   }
 
@@ -201,7 +237,6 @@ void DoEvent(collision_detector::GatheringEventMOD &event, GameSession &sess)
     gather.initiator = dog;
     return gather;
   }
-
 
 }
 
@@ -238,15 +273,14 @@ namespace api
       gathers.push_back(std::move(gather));
 
       // ОБНОВЛЯЕМ СОСТОЯНИЕ ТЕКУЩЕЙ СОБАКИ
-     bool is_dog_stoped_now = dog.second->IsNeededTStopDog(coordinates, limits);
-     
-    
-    if(is_dog_stoped_now){
-       stop_signal_ (*sess.GetMap().GetId(), dog.second->GetId() , serv_time_);
-    }
-    
-     dog.second->SetDogCoordinates(coordinates);
-    
+      bool is_dog_stoped_now = dog.second->IsNeededTStopDog(coordinates, limits);
+
+      if (is_dog_stoped_now)
+      {
+        stop_signal_(*sess.GetMap().GetId(), dog.second->GetId(), serv_time_);
+      }
+
+      dog.second->SetDogCoordinates(coordinates);
     }
     return gathers;
   };
@@ -270,27 +304,42 @@ namespace api
 
   void Play::ManualTick(double delta_t)
   {
-    
+
     std::chrono::milliseconds ms = ConvertDoubleToMS(delta_t);
-    
-    //ОБНОВЛЯЕМ ТОЧКУ ОБНОВЛЕНИЯ ИГРОВЫХ ЧАСОВ
+    // ОБНОВЛЯЕМ ТОЧКУ ОБНОВЛЕНИЯ ИГРОВЫХ ЧАСОВ
     serv_time_ += ms;
-    
-    //ПРОВЕРЯЕМ НА ПРОСТОЙ И ИСКЛЮЧАЕМ БЕЗДЕЙСТВУЮЩИХ
-     KickUnuseful(ms);
-    
+
+    // ПРОВЕРЯЕМ НА ПРОСТОЙ И ИСКЛЮЧАЕМ БЕЗДЕЙСТВУЮЩИХ
+
+    try
+    {
+
+      KickUnuseful(ms);
+    }
+    catch (std::exception &ex)
+    {
+      throw std::logic_error("KIKUNUSEFUL");
+    }
+
     assert(looter_ != nullptr);
     auto &sessions = sessions_;
     for (auto &sess_p : sessions)
     {
       auto &sess = *sess_p.second;
+
       UpdateLootPositions(sess, delta_t);
+
       // ОБНОВЛЯЕМ ПОЗИЦИИ СОБАК И ПОЛУЧАЕМ ВЕКТОР СОБИРАТЕЛЕЙ
-      auto gathers = UpdateDogPositionsAndGetGathers(sess, delta_t);
+
+      std::vector<collision_detector::GathererDog> gathers;
+
+      gathers = UpdateDogPositionsAndGetGathers(sess, delta_t);
+
       UpdateEventChronology(sess, std::move(gathers));
     }
-    tick_signal_(ms);  
-  
+
+    // СИГНАЛ НА ЗАПИСЬ
+    tick_signal_(ms);
   }
 
 }
@@ -303,18 +352,16 @@ namespace api
     double sess_spd = player->PlayersSession()->GetSessionSpeed();
     auto dog = player->PlayersDog();
     auto dogspeed = model::GetDogSpeedByDrection(move, sess_spd);
-    
-    
-  
-   
-   
-    if(move == ""){
-       stop_signal_(*player->PlayersSession()->GetMap().GetId(), dog->GetId(), serv_time_);
+
+    if (move == "")
+    {
+      stop_signal_(*player->PlayersSession()->GetMap().GetId(), dog->GetId(), serv_time_);
     }
-    else{
+    else
+    {
       move_signal_(*player->PlayersSession()->GetMap().GetId(), dog->GetId());
     }
-      
+
 #ifdef LOGGING
     model::LogWas("CHANGE DIRECTION", dog);
 #endif
@@ -337,19 +384,16 @@ namespace api
     std::string token = player->GetToken();
     token_players_[token] = std::move(player);
     needed_session->JoinGame(token_players_.at(token)->PlayersDog());
-    
-   // ПРИСОЕДИНЯЕМСЯ К СЧЕТЧИКУ ВРЕМЕНИ ПРОСТОЯ
-   TCC::JoinToTimeObserve(*needed_session->GetMap().GetId(),token_players_.at(token)->PlayersDog()->GetId()
-                           ,token_players_.at(token)->GetToken(), serv_time_);
-    
-  
-   return token_players_.at(token);
-  
+
+    // ПРИСОЕДИНЯЕМСЯ К СЧЕТЧИКУ ВРЕМЕНИ ПРОСТОЯ
+    TCC::JoinToTimeObserve(*needed_session->GetMap().GetId(), token_players_.at(token)->PlayersDog()->GetId(), token_players_.at(token)->GetToken(), serv_time_);
+
+    return token_players_.at(token);
   }
 
 }
 
-// GAME 
+// GAME
 namespace api
 {
   const model::Game &Play::Game() const
@@ -358,12 +402,10 @@ namespace api
   }
 
   // Добавляем обработчик сигнала tick и возвращаем объект connection для управления,
-    // при помощи которого можно отписаться от сигнала
-     sig::connection Play::SubsribeFunctionToGameSignal(const Play::TickSignal::slot_type &handler)
-    {
-      return tick_signal_.connect(handler);
-    }
-
+  // при помощи которого можно отписаться от сигнала
+  sig::connection Play::SubsribeFunctionToGameSignal(const Play::TickSignal::slot_type &handler)
+  {
+    return tick_signal_.connect(handler);
+  }
 
 }
-

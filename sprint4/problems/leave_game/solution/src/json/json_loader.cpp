@@ -154,7 +154,7 @@ auto ParseFile(const std::filesystem::path &json_path)
     if (!js_fstream)
     {
         std::cerr << "FILE OPEN ERROR" << std::endl;
-        std::abort();
+      
     }
 
     std::ostringstream js_str;

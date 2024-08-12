@@ -152,8 +152,7 @@ namespace api
     // УСТАНОВКА ВРЕМЕНИ ПРОСТОЯ ДО КИКА
     static void SetRetireTime(std::chrono::milliseconds time);
 
-    // ПРОВЕРКА ЧТО БЫ НЕ ЗАБЫТЬ УСТАНОВТЬ ВРЕМЯ
-    static void Check();
+    
 
     static void JoinToTimeObserve(const std::string &map, size_t id_pl, const std::string &token_pl,
                                   const std::chrono::system_clock::time_point& servertime);

@@ -37,8 +37,8 @@ PlayerTokens::GenerateLoot(const SortedSessionRoads &roads, size_t objects_need,
 
   // В объекте для фронтенда ищем контейнер относящийся к нашей гейм-сессии, нам будет нужен его размер
   auto &loot_container = frontend::FrontEndLoot::GetLootToFrontend(map_name);
-  if (loot_container.empty())
-    throw(std::logic_error("Impossible to generate. Loot container at your nsme is empty"));
+  if (loot_container.empty()){
+    throw(std::logic_error("Impossible to generate. Loot container at your nsme is empty"));}
 
   // Обьявляем Координаты - номер в контейнере
   std::vector<std::pair<model::LootCoordinates, size_t>> object_list;
@@ -61,8 +61,8 @@ std::shared_ptr<model::Road> PlayerTokens::RoadPositionRandom(const SortedSessio
 {
 
   auto check = CheckCorrectroads(roads);
-  if (check == all_false)
-    throw std::logic_error("NO ROADS");
+  if (check == all_false){
+    throw std::logic_error("NO ROADS");}
 
   size_t value = 0;
   uint64_t generated = generator1_();

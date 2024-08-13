@@ -165,7 +165,7 @@ namespace api
     }
 
     static void SignalStop(const std::string &map, size_t id_pl, const std::chrono::system_clock::time_point& servertime){
-         activity_.at(map).at(id_pl) = { MoveStautus::STANDING , servertime};
+         activity_.at(map).at(id_pl) = { MoveStautus::STANDING , GetNow()};
     }
   
   private:

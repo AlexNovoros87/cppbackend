@@ -5,7 +5,6 @@
 #include <iostream>
 #include <functional>
 #include <map>
-#include <boost/functional/hash.hpp>
 
 namespace serialization{
 class DogRepr;
@@ -86,10 +85,13 @@ namespace model
         {
             size_t operator()(const LootCoordinates &pos) const
             {
-                size_t hash;
-                boost::hash_combine(hash, pos.x + pos.y * 37.);
-                return hash;
+               // Комбинируем хэш значения x и y
+               size_t hash = std::hash<double>()(pos.x * 37. + pos.y);
+               return hash;
             };
+        private:
+        
+        
         };
 
         explicit GameSession(Map mp);

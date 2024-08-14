@@ -66,7 +66,6 @@ namespace request_handler
     
     response.body() = std::move(file);
     response.prepare_payload();
-    
     return response;
   };
  

@@ -25,24 +25,18 @@ namespace request_handler
     template <typename Body, typename Allocator, typename Send>
     void operator()(http::request<Body, http::basic_fields<Allocator>> &&req, Send &&send)
     {
-
-      mtx_.lock();
       auto parsed_target = ParseTarget(std::string(req.target()));
       request_handler::TypeRequest type_request = request_handler::GetTypeRequset(parsed_target);
-      mtx_.unlock();
-
-      try
-      {
-
-        if (type_request == request_handler::TypeRequest::API)
+    
+    if (type_request == request_handler::TypeRequest::API)
         {
-
+          // parsed_target принимаю по значению с перемещением в лямбду так как на многопотоке 
+          // придет другой поток и создаст свою версию parsed_target ... и bad_alloc обеспечен  
           auto handle = [self = shared_from_this(), send,
                          req = std::forward<decltype(req)>(req), p_target = std::move(parsed_target)]
           {
             try
             {
-
               // Этот assert не выстрелит, так как лямбда-функция будет выполняться внутри strand
               assert(self->api_strand_.running_in_this_thread());
               return send(APIHandler(std::move(std::move(req)), self->game_, std::move(p_target)).MakeResponce());
@@ -50,7 +44,6 @@ namespace request_handler
             catch (const std::exception &ex)
             {
               std::string mist = "*****IN API*****";
-              mist.append(std::string(ex.what()));
               send(self->ReportServerError(req.version(), req.keep_alive(), mist));
             }
           };
@@ -64,21 +57,16 @@ namespace request_handler
           }
           catch (const std::exception &ex)
           {
-            std::string mist = "*****IN STATIC*****" + std::string(ex.what());
+            std::string mist = "*****IN STATIC*****";
             send(ReportServerError(req.version(), req.keep_alive(), std::move(mist)));
           }
         }
       }
-      catch (...)
-      {
-        send(ReportServerError(req.version(), req.keep_alive(), "ABNORMAL AND UNKNOWN EXC"));
-      }
-    }
+    
 
   private:
     VariantResponse ReportServerError(unsigned version, bool keep_alive, std::string error_what) const;
-    VariantResponse MakeStaticRespone(unsigned version, bool keep_alive, std::string target);
-    std::mutex mtx_;
+    VariantResponse MakeStaticRespone(unsigned version, bool keep_alive, std::string target) ;
   };
 
 } // namespace http_handler

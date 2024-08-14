@@ -11,7 +11,6 @@ using UUIDType = boost::uuids::uuid;
 
 namespace uuid
 {
-    // constexpr UUIDType ZeroUUID{{0}};
     UUIDType UUIDFromString(std::string_view str);
     std::string NewStringUUDD();
 }

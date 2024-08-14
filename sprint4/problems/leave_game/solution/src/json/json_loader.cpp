@@ -242,8 +242,7 @@ namespace json_loader
         }
         //СТРОИМ ТАБЛИЦЫ И НАСТРАИВАЕМ НАБЛЮДАТЕЛЯ ЗА ПРОСТОЕМ
         SetupAll(kicktime);
-
-
+       
         return play;
     };
 

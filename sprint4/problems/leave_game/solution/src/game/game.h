@@ -114,7 +114,6 @@ namespace api
     {
       
       std::vector<IdTWithDurSc> to_sql_members;
-
       // ПРИ ОБХОДЕ СЛОВАРЯ ИГРОКОВ УДАЛЯТЬ ИГРОКОВ НЕ БУДЕМ
       // ТОЛЬКО СОБАК ИЗ СЕССИЙ
       for (auto &pair : token_players_)
@@ -174,10 +173,6 @@ namespace api
     // ГРАФ ТОЧЕК
     GameGraph graph_;
 
-    
-  
-    
-  
   };
 
   /*

@@ -49,12 +49,11 @@ namespace request_handler
 
       try
       {
-
         if (!CheckBaseValid(parsed_target_))
         {
           return Make400JSB(req_.version(), req_.keep_alive(),
-                            std::string("badRequest"),
-                            std::string("API_Base_Check_Failed"));
+                            std::string(req_static_str::badRequest),
+                            std::string(reason_to_human::API_Base_Check_Failed));
         };
 
         DirectionAPI direcion = Director(parsed_target_);
@@ -62,15 +61,14 @@ namespace request_handler
       }
       catch (const std::exception &ex)
       {
-        std::string mist = "MIST IN---> ";
-        std::string i = std::string(ex.what());
-        mist.append(i);
-
+        std::string mist = "MIST IN MAKE RESPONSE" + std::string(ex.what());
         return Make400JSB(req_.version(), req_.keep_alive(),
-                          std::string("badRequest"),
+                          std::string(req_static_str::badRequest),
                           mist);
       }
+      return{};
     };
+   
   };
 
   /*
@@ -115,10 +113,6 @@ namespace request_handler
 
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument),
                         std::string());
-    }
-    catch (...)
-    {
-      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "RECORD ERROR UNKNOWN");
     }
     return {};
   }
@@ -180,11 +174,6 @@ namespace request_handler
       // ОТВЕТ В СЛУЧАЕ ОШИБКИ
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), mist);
     }
-    catch (...)
-    {
-      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "ERROR TICK UNKNOWN");
-    }
-
     return {};
   }
 
@@ -306,10 +295,6 @@ namespace request_handler
       // ОТВЕТ В СЛУЧАЕ ОШИБКИ
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), mist);
     }
-    catch (...)
-    {
-      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "JOIN ERROR UNKNOWN");
-    }
     return {};
   };
 
@@ -357,18 +342,13 @@ namespace request_handler
 
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), mist);
     }
-    catch (...)
-    {
-      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "AUTHPATTERN ERROR UNKNOWN");
-    }
   };
 
   template <typename Requester>
   VariantResponse APIHandler<Requester>::Players()
   {
 
-    try
-    {
+   
       // ЗАПУСК ПАТТЕРНА ПРОВЕРКИ АВТОРИЗАЦИИ
       auto action = UseAutorizationPattern();
       // ЕСЛИ ВЕРНУЛСЯ СФОРМИРОВАНЫЙ ОТВЕТ - ВОЗВРАЩАЕМ ЕГО
@@ -382,19 +362,12 @@ namespace request_handler
       std::string tmp = obs_.GetJSONSession(player);
       // ВОЗВРАЩАЕМ ОТВЕТ
       return Make200JSB(req_.version(), req_.keep_alive(), std::move(tmp));
-    }
-    catch (...)
-    {
-      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "PLAYERS ERROR UNKNOWN");
-    }
+    
   }
 
   template <typename Requester>
   VariantResponse APIHandler<Requester>::State()
   {
-
-    try
-    {
       // ЗАПУСК ПАТТЕРНА ПРОВЕРКИ АВТОРИЗАЦИИ
       auto action = UseAutorizationPattern();
       // ЕСЛИ ВЕРНУЛСЯ СФОРМИРОВАНЫЙ ОТВЕТ - ВОЗВРАЩАЕМ ЕГО
@@ -408,11 +381,6 @@ namespace request_handler
       std::shared_ptr<model::GameSession> sess = player->PlayersSession();
       // ВОЗВРАЩАЕМ ОТВЕТ
       return Make200State(req_.version(), req_.keep_alive(), sess);
-    }
-    catch (...)
-    {
-      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "STATE ERROR UNKNOWN");
-    }
   }
 
   template <typename Requester>
@@ -479,10 +447,6 @@ namespace request_handler
 
       // ОТВЕТ В СЛУЧАЕ ОШИБКИ
       return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), mist);
-    }
-    catch (...)
-    {
-      return Make400JSB(req_.version(), req_.keep_alive(), std::string(req_static_str::invalidArgument), "MOVE ERROR UNKNOWN");
     }
     return {};
   };

@@ -39,7 +39,8 @@ namespace api
         for (auto &&session : play_.sessions_)
         {
             std::cout << "stored_by: " << session.first << std::endl;
-            std::cout << "Name: " << session.second->GetMap().GetName() << " ID: " << *session.second->GetMap().GetId() << std::endl;
+            std::cout << "Name: " << session.second->GetMap().GetName() << " ID: " 
+                      << *session.second->GetMap().GetId() << std::endl;
             session.second->PrintDogs();
         }
     }

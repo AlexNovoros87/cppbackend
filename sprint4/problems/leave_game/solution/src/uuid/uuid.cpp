@@ -2,7 +2,6 @@
 
 namespace uuid
 {
-    // constexpr UUIDType ZeroUUID{{0}};
     UUIDType NewUUID()
     {
         return boost::uuids::random_generator()();

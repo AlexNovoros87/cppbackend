@@ -152,22 +152,14 @@ namespace api
       // ПОЛУЧАЕМ МАКС РАЗМЕР СУМКИ НА СЕССИИ
       size_t bag_capacity_on_level = sess.GetMap().GetBagCapacity();
       // ЕСЛИ ХВАТАЕТ МЕСТА В СУМКЕ
-
       if (event.initiator->GetLootBag().size() < bag_capacity_on_level)
       {
-
-        try
+        if (lost_loot.count(event.where))
         {
-          if(lost_loot.count(event.where)){
           // ПОДНЯТЬ ПРЕДМЕТ
           event.initiator->PickUpLoot(std::move(lost_loot.at(event.where)));
           // СТЕРЕТЬ ПРЕДМЕТ ИЗ БАЗЫ ПОТЕРЯННЫХ ВЕЩЕЙ
           lost_loot.erase(event.where);
-          }
-        }
-        catch (const std::exception &ex)
-        {
-          throw std::logic_error("IN PICKUP LOOT");
         }
       }
     }
@@ -178,51 +170,28 @@ namespace api
     // СОЗДАТЬ НАСЛЕДНИКА
     collision_detector::Collizer situation_queuer_;
     // ПЕРЕДАТЬ СОБИРАТЕЛЕЙ
-    try
+    situation_queuer_.AddGatherers(std::move(gathers));
+
+    // ДОБАВИТЬ ВЕСЬ ЛУТ С КАРТЫ
+    for (auto &&loot : sess.GetLootList())
     {
-
-      situation_queuer_.AddGatherers(std::move(gathers));
-
-      // ДОБАВИТЬ ВЕСЬ ЛУТ С КАРТЫ
-      for (auto &&loot : sess.GetLootList())
-      {
-        situation_queuer_.AddLootObject(loot.first);
-      }
-
-      // ДОБАВИТЬ ВСЕ ОФИСЫ
-      for (auto office : sess.GetMap().GetOffices())
-      {
-        situation_queuer_.AddOffice(office);
-      }
+      situation_queuer_.AddLootObject(loot.first);
     }
-    catch (std::exception &ex)
+
+    // ДОБАВИТЬ ВСЕ ОФИСЫ
+    for (auto office : sess.GetMap().GetOffices())
     {
-      throw std::logic_error("UpdateEventChronology PART1");
+      situation_queuer_.AddOffice(office);
     }
 
     std::vector<collision_detector::GatheringEventMOD> chronology;
+    // ПОСТРОИТЬ ХРОНОЛОГИЮ СОБЫТИЙ
+    chronology = collision_detector::FindGatherEventsOrder(situation_queuer_);
 
-    try
+    // ВЫПОЛНИТЬ СОБЫТИЯ
+    for (auto &event : chronology)
     {
-      // ПОСТРОИТЬ ХРОНОЛОГИЮ СОБЫТИЙ
-      chronology = collision_detector::FindGatherEventsOrder(situation_queuer_);
-    }
-    catch (std::exception &ex)
-    {
-      throw std::logic_error("ERROR IN FindGatherEventsOrder");
-    }
-
-    try
-    {
-      // ВЫПОЛНИТЬ СОБЫТИЯ
-      for (auto &event : chronology)
-      {
-        DoEvent(event, sess);
-      }
-    }
-    catch (std::exception &ex)
-    {
-      throw std::logic_error("ERROR IN DoEvent");
+      DoEvent(event, sess);
     }
   }
 
@@ -241,7 +210,6 @@ namespace api
 
 namespace api
 {
-
   void Play::ManualTick(std::chrono::milliseconds delta_t)
   {
     double delta = delta_t.count();
@@ -271,14 +239,13 @@ namespace api
       // ДОБАВЛЯЕМ СОБИРАТЕЛЯ В ВЕКТОР
       gathers.push_back(std::move(gather));
 
-      // ОБНОВЛЯЕМ СОСТОЯНИЕ ТЕКУЩЕЙ СОБАКИ
+      // ОБНОВЛЯЕМ СОСТОЯНИЕ ТЕКУЩЕЙ СОБАКИ И УЗНАЕМ ОСТАНОВИЛАСТ ЛИ ОНА СЕЙЧАС ДЛЯ СИГНАЛА
       bool is_dog_stoped_now = dog.second->IsNeededTStopDog(coordinates, limits);
 
       if (is_dog_stoped_now)
       {
         stop_signal_(*sess.GetMap().GetId(), dog.second->GetId(), serv_time_);
       }
-
       dog.second->SetDogCoordinates(coordinates);
     }
     return gathers;
@@ -295,7 +262,6 @@ namespace api
     size_t loot_needed = looter_->Generate(ms, loot_on_map, dogs_on_map);
 
     // Gen::GENERATOR.GenerateLoot генерирует вектор пар "координаты на карте - порядковый номер лута в контейнере"
-    
     for (auto [coord, order_num] : Gen::GENERATOR.GenerateLoot(sort_roads, loot_needed, name))
     {
       sess.AddLoot(coord, order_num);
@@ -304,48 +270,28 @@ namespace api
 
   void Play::ManualTick(double delta_t)
   {
-
-    // std::chrono::time_point b = std::chrono::system_clock::now(); 
-    
     std::chrono::milliseconds ms = ConvertDoubleToMS(delta_t);
     // ОБНОВЛЯЕМ ТОЧКУ ОБНОВЛЕНИЯ ИГРОВЫХ ЧАСОВ
     serv_time_ += ms;
 
     // ПРОВЕРЯЕМ НА ПРОСТОЙ И ИСКЛЮЧАЕМ БЕЗДЕЙСТВУЮЩИХ
-    try
-    {
-       KickUnuseful(ms);
-    }
-    catch (std::exception &ex)
-    {
-      throw std::logic_error("KIKUNUSEFUL");
-    }
+    KickUnuseful(ms);
 
-    //assert(looter_ != nullptr);
     auto &sessions = sessions_;
     for (auto &sess_p : sessions)
     {
       auto &sess = *sess_p.second;
 
       UpdateLootPositions(sess, delta_t);
-
       // ОБНОВЛЯЕМ ПОЗИЦИИ СОБАК И ПОЛУЧАЕМ ВЕКТОР СОБИРАТЕЛЕЙ
-
       std::vector<collision_detector::GathererDog> gathers;
-
       gathers = UpdateDogPositionsAndGetGathers(sess, delta_t);
-
+      // ВЫПОЛНЯЕМ СОБЫТИЯ
       UpdateEventChronology(sess, std::move(gathers));
     }
 
     // СИГНАЛ НА ЗАПИСЬ
     tick_signal_(ms);
-  
-  //  std::chrono::time_point e = std::chrono::system_clock::now(); 
-  //  auto i = std::chrono::duration_cast<std::chrono::milliseconds>(e-b).count();
-  //   std::cout<< std::chrono::duration_cast<std::chrono::milliseconds>(e-b).count()<<std::endl;
-  
-  
   }
 
 }
@@ -392,8 +338,9 @@ namespace api
     needed_session->JoinGame(token_players_.at(token)->PlayersDog());
 
     // ПРИСОЕДИНЯЕМСЯ К СЧЕТЧИКУ ВРЕМЕНИ ПРОСТОЯ
-    TCC::JoinToTimeObserve(*needed_session->GetMap().GetId(), token_players_.at(token)->PlayersDog()->GetId(), token_players_.at(token)->GetToken(), serv_time_);
-
+    TCC::JoinToTimeObserve(*needed_session->GetMap().GetId(), 
+                            token_players_.at(token)->PlayersDog()->GetId(), 
+                            token_players_.at(token)->GetToken(), serv_time_);
     return token_players_.at(token);
   }
 
@@ -406,7 +353,6 @@ namespace api
   {
     return game_;
   }
-
   // Добавляем обработчик сигнала tick и возвращаем объект connection для управления,
   // при помощи которого можно отписаться от сигнала
   sig::connection Play::SubsribeFunctionToGameSignal(const Play::TickSignal::slot_type &handler)

@@ -35,7 +35,6 @@ namespace api
 
     // НА КАРТЕ Х ИГРОК У состояние без движения
     activity_[map][id_pl] = {MoveStautus::STANDING, servertime};
-    //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // НА КАРТЕ Х ИГРОКА ДАННЫЕ О ИГРОКЕ
     info_[map][id_pl] = std::move(params);
   }
@@ -75,6 +74,22 @@ namespace api
     return ret;
   }
 
+  // СИГНАЛ НА ДВИДЕНИЕ НА (карте Х)(игрок У) начал движение....
+  void TCC::SignalMove(const std::string &map, size_t id_pl)
+  {
+    activity_.at(map).at(id_pl).movestatus = MoveStautus::MOVING;
+  }
+
+  // СИГНАЛ НА ДВИДЕНИЕ НА (карте Х)(игрок У) начал остановился....
+  // И начался отсчет его простоя с servertime///
+  void TCC::SignalStop(const std::string &map, size_t id_pl, const std::chrono::system_clock::time_point &servertime)
+  {
+    if (activity_.at(map).at(id_pl).movestatus == MoveStautus::MOVING)
+    {
+      activity_.at(map).at(id_pl) = {MoveStautus::STANDING, servertime};
+    }
+  }
+
   std::chrono::system_clock::time_point TCC::GetNow()
   {
     return std::chrono::system_clock::now();
@@ -83,6 +98,72 @@ namespace api
 
 namespace sql
 {
-  char *SQL::adress_;
+    void SQL::SetConnectAdressAndBuildTable()
+    {
+      // УСТАНАВЛИВАЕМ АДРЕС ДЛЯ СОЗДАНИЯ ПОДКЛЮЧЕНИЙ
+      adress_ = std::getenv(GAME_DB_URL);
 
+      pqxx::connection conn{adress_};
+      pqxx::transaction trz{conn};
+
+      // СТРОИМ ТАБЛИЦУ
+      trz.exec (R"(
+      CREATE TABLE IF NOT EXISTS retired_players
+      (
+          id UUID PRIMARY KEY,
+          name VARCHAR(100) NOT NULL,
+          score INT NOT NULL,
+          play_time_ms INT NOT NULL
+          
+      );
+      
+      CREATE INDEX IF NOT EXISTS retired_players_score_playtime_name_idx ON retired_players(
+      score DESC, play_time_ms, name);
+    
+      )"_zv
+      );
+       trz.commit();
+     }
+
+    //ВСЕХ КИКНУТЫХ ИГОКОВ ЗАНОСИМ В БАЗУ СКУЭЛЬ
+    void SQL::RecordTOSQLKicked(std::vector<api::IdTWithDurSc> to_kick)
+    {
+      if(!adress_){adress_ = std::getenv(GAME_DB_URL);}
+      pqxx::connection conn{adress_};
+      pqxx::transaction trz{conn};
+
+      for (auto &member : to_kick)
+      {
+        trz.exec_params("INSERT INTO retired_players VALUES ( $1 ,$2 , $3, $4 );"_zv,
+                        uuid::NewStringUUDD(), std::move(member.name), member.score, member.duration);
+      }
+      trz.commit();
+    }
+
+    std::string SQL::GetRecords(int offset, int limit)
+    {
+      if(!adress_){adress_ = std::getenv(GAME_DB_URL);}
+      boost::json::array arr;
+      pqxx::connection conn{adress_};
+      pqxx::read_transaction trz{conn};
+
+      for (auto [name, score, time] : trz.exec_params(
+          R"( 
+          SELECT name, score, play_time_ms 
+          FROM retired_players 
+          ORDER BY score DESC, play_time_ms ASC, name 
+          LIMIT $1 OFFSET $2; 
+         )"_zv,limit, offset).iter<std::string, int, int>())
+      {
+
+        boost::json::object obj;
+        obj["name"] = std::move(name);
+        obj["score"] = score;
+        obj["playTime"] = static_cast<double>(time) / 1000.;
+        arr.push_back(std::move(obj));
+      }
+    
+      return boost::json::serialize(arr);
+    }
+  char *SQL::adress_;
 }

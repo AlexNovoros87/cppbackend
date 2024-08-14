@@ -112,6 +112,7 @@ namespace api
 
     void KickUnuseful(std::chrono::milliseconds delta_t)
     {
+      
       std::vector<IdTWithDurSc> to_sql_members;
 
       // ПРИ ОБХОДЕ СЛОВАРЯ ИГРОКОВ УДАЛЯТЬ ИГРОКОВ НЕ БУДЕМ

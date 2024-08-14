@@ -7,15 +7,17 @@ std::pair<bool, bool> CheckCorrectroads(const SortedSessionRoads &roads)
 {
 
   std::pair<bool, bool> answer = all_false;
+  //ЕСЛИ ВООБЩЕ НЕТ НИКАКИХ ДОРОГ
   if (roads.count(model::RoadOrient::VERTRICAL) == 0 && roads.count(model::RoadOrient::HORIZONTAL) == 0)
     return all_false;
 
+  //ЕСЛИ ЕСТЬ ВЕРТИКАЛЬНЫЕ 
   if (roads.count(model::RoadOrient::VERTRICAL) > 0)
   {
     if (!roads.at(model::RoadOrient::VERTRICAL).empty())
       answer.first = true;
   }
-
+  //ЕСЛИ ЕСТЬ ГОРИЗОНТАЛЬНЫЕ
   if (roads.count(model::RoadOrient::HORIZONTAL) > 0)
   {
     if (!roads.at(model::RoadOrient::HORIZONTAL).empty())
@@ -34,7 +36,6 @@ std::string PlayerTokens::GenerateHEXToken()
 std::vector<std::pair<model::LootCoordinates, size_t>>
 PlayerTokens::GenerateLoot(const SortedSessionRoads &roads, size_t objects_need, const std::string &map_name)
 {
-
   // В объекте для фронтенда ищем контейнер относящийся к нашей гейм-сессии, нам будет нужен его размер
   auto &loot_container = frontend::FrontEndLoot::GetLootToFrontend(map_name);
   if (loot_container.empty()){
@@ -51,7 +52,8 @@ PlayerTokens::GenerateLoot(const SortedSessionRoads &roads, size_t objects_need,
     // рандом координат на дороге
     auto need_coordinates = GetRandomRoadPoint(needed_road);
     // рандом порядкового номера лута из списка
-    size_t loot_num = RandomGenerate(size_t(0), loot_container.size());
+    
+    size_t loot_num = RandomGenerate(size_t(0), loot_container.size() - 1);
     object_list.push_back({need_coordinates, loot_num});
   }
   return object_list;

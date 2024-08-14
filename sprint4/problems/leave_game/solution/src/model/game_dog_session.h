@@ -19,7 +19,7 @@ namespace model
         size_t id;
         size_t type;
         bool operator == (const Loot& rhs) const{
-          return (id == rhs.id && type == rhs.type);
+          return (  id == rhs.id && type == rhs.type);
         }
     };
 

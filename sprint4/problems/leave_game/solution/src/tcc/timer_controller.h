@@ -78,13 +78,10 @@ namespace sql
       score DESC, play_time_ms, name
       );
       )"_zv);
-      
-      
-      
-      
-      trz.commit();
+       trz.commit();
     }
 
+    //ВСЕХ КИКНУТЫХ ИГОКОВ ЗАНОСИМ В БАЗУ СККУЭЛЬ
     static void RecordTOSQLKicked(std::vector<api::IdTWithDurSc> to_kick)
     {
       pqxx::connection conn{adress_};
@@ -112,9 +109,7 @@ namespace sql
           FROM retired_players 
           ORDER BY score DESC, play_time_ms ASC, name 
           LIMIT  $1 OFFSET $2; 
-         )"_zv,
-                                             limit, offset)
-                                          .iter<std::string, int, int>())
+         )"_zv,limit, offset).iter<std::string, int, int>())
       {
 
         boost::json::object obj;
@@ -127,16 +122,10 @@ namespace sql
       return boost::json::serialize(arr);
     }
 
-    static void SetContextAndStrand(boost::asio::io_context &cont)
-    {
-      ioc_ = &cont;
-      strand_ = std::make_unique<Strand>(boost::asio::make_strand(*ioc_));
-    }
+   
 
   private:
     static char *adress_;
-    static boost::asio::io_context *ioc_;
-    static std::unique_ptr<Strand> strand_;
   };
 
 }
@@ -153,19 +142,23 @@ namespace api
     static void SetRetireTime(std::chrono::milliseconds time);
 
     
-
+    //ПОДКЛЮЧЕНИЕ ИГРОКА К НАБЛОЮДАТЕЛЮ ЗА ЕГО АКТИВНОСТЬЮ
     static void JoinToTimeObserve(const std::string &map, size_t id_pl, const std::string &token_pl,
                                   const std::chrono::system_clock::time_point& servertime);
 
+    //ПРИНИМАЕТ РЕШЕНИЕ УДАЛЯТЬ ЛИ ДАННОГО ИГРОКА ИЛИ НЕТ
     static std::optional<api::IdTWithDurSc> StructToDeleteOrNull(const std::string &map, size_t id_pl,
     const std::chrono::system_clock::time_point& servertime, std::chrono::milliseconds delta);
 
+    //СИГНАЛ НА ДВИДЕНИЕ НА (карте Х)(игрок У) начал движение....
     static void SignalMove(const std::string &map, size_t id_pl){
          activity_.at(map).at(id_pl).movestatus =  MoveStautus::MOVING;
     }
 
+     //СИГНАЛ НА ДВИДЕНИЕ НА (карте Х)(игрок У) начал остановился....
+     //И начался отсчет его простоя с servertime///
     static void SignalStop(const std::string &map, size_t id_pl, const std::chrono::system_clock::time_point& servertime){
-         activity_.at(map).at(id_pl) = { MoveStautus::STANDING , GetNow()};
+         activity_.at(map).at(id_pl) = { MoveStautus::STANDING , servertime};
     }
   
   private:
@@ -176,7 +169,7 @@ namespace api
     static std::unordered_map<std::string, std::unordered_map<size_t, std::chrono::system_clock::time_point>> time_entered_;
     //АКТИВНОСТЬ ИГРОКА
     static std::unordered_map<std::string, std::unordered_map<size_t, Activity>> activity_;
-  
+    //ПО КАРТЕ И АЙДИ ХРАНИТ ТОКЕН, АЙДИ И АЙДИ КАРТЫ ГДЕ ИГРОК
     static std::unordered_map<std::string, std::unordered_map<size_t, IdToken>> info_;
   };
 

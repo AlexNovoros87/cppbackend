@@ -2,6 +2,7 @@
 #include "../req_helper/model_help.h"
 #include "../tokenizer/tokenizer.h"
 #include <sstream>
+#include <chrono>
 
 /*
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -223,7 +224,7 @@ namespace api
     }
     catch (std::exception &ex)
     {
-      throw std::logic_error("ERROR IN DoEvent" + std::string(ex.what()));
+      throw std::logic_error("ERROR IN DoEvent");
     }
   }
 
@@ -296,6 +297,7 @@ namespace api
     size_t loot_needed = looter_->Generate(ms, loot_on_map, dogs_on_map);
 
     // Gen::GENERATOR.GenerateLoot генерирует вектор пар "координаты на карте - порядковый номер лута в контейнере"
+    
     for (auto [coord, order_num] : Gen::GENERATOR.GenerateLoot(sort_roads, loot_needed, name))
     {
       sess.AddLoot(coord, order_num);
@@ -305,23 +307,23 @@ namespace api
   void Play::ManualTick(double delta_t)
   {
 
+    // std::chrono::time_point b = std::chrono::system_clock::now(); 
+    
     std::chrono::milliseconds ms = ConvertDoubleToMS(delta_t);
     // ОБНОВЛЯЕМ ТОЧКУ ОБНОВЛЕНИЯ ИГРОВЫХ ЧАСОВ
     serv_time_ += ms;
 
     // ПРОВЕРЯЕМ НА ПРОСТОЙ И ИСКЛЮЧАЕМ БЕЗДЕЙСТВУЮЩИХ
-
     try
     {
-
-      KickUnuseful(ms);
+       KickUnuseful(ms);
     }
     catch (std::exception &ex)
     {
       throw std::logic_error("KIKUNUSEFUL");
     }
 
-    assert(looter_ != nullptr);
+    //assert(looter_ != nullptr);
     auto &sessions = sessions_;
     for (auto &sess_p : sessions)
     {
@@ -340,6 +342,12 @@ namespace api
 
     // СИГНАЛ НА ЗАПИСЬ
     tick_signal_(ms);
+  
+  //  std::chrono::time_point e = std::chrono::system_clock::now(); 
+  //  auto i = std::chrono::duration_cast<std::chrono::milliseconds>(e-b).count();
+  //   std::cout<< std::chrono::duration_cast<std::chrono::milliseconds>(e-b).count()<<std::endl;
+  
+  
   }
 
 }

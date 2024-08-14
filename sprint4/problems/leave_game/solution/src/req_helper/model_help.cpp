@@ -27,7 +27,7 @@ namespace model
         double coord_Y = dog->GetDogCoord().y;
 
         auto dog_speed = dog->GetDodSpd();
-        double dtime = delta_t / 1000;
+        double dtime = delta_t / 1000.;
 
         double potential_y = (dog_speed.speed_y * dtime) + coord_Y;
         double potential_x = (dog_speed.speed_x * dtime) + coord_X;
@@ -79,6 +79,8 @@ namespace model
         return true;
     }
 
+    
+    //БЫВАЕТ ЧТО СОБАКА НА ТОЧКЕ, ПРЕНАДЛЕЖАЩЕЙ 3м или 4м ДОРОГАМ.....
     std::vector<std::shared_ptr<Road>> OnWhichRoadsDod(const GameSession &game, DogCoordinates coordy, const SessionGraph &graph)
     {
 

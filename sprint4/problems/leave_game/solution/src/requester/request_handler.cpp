@@ -71,10 +71,17 @@ namespace request_handler
   };
  
  
- VariantResponse RequestHandler::ReportServerError(unsigned version, bool keep_alive) const{
+ VariantResponse RequestHandler::ReportServerError(unsigned version, bool keep_alive, std::string error_what) const{
   
-  
-  return{};
+  StringResponse resp;
+    resp.version(version);
+    resp.keep_alive(keep_alive);
+    resp.set(HttpHeader::content_type, type_content.at(Extensions::json));
+    resp.set(HttpHeader::cache_control, std::string(req_static_str::no_cache));
+    resp.result(statuses::ST400);
+    resp.body() = "ERROR HANDLER PLACE---> " + std::move(error_what);
+    resp.prepare_payload();
+    return resp; 
  };
 
 } // namespace http_handler

@@ -128,7 +128,7 @@ namespace api
         auto &sess_id = *pl_sess->GetMap().GetId();
         size_t dog_id = pl_dog->GetId();
 
-          if(pl_dog->GetDodSpd().IsNoSpeed()){
+          
            //ЕСЛИ ПРИШЛО ВРЕМЯ УДАЛЯТЬ ЕЕ ИЗ ИГРЫ
           if (auto remove = TCC::StructToDeleteOrNull(sess_id, dog_id,serv_time_,delta_t))
           {
@@ -137,9 +137,6 @@ namespace api
             pl_sess->LeaveGame(dog_id);
             to_sql_members.push_back(std::move(*remove));
           }
-        }
-        
-        
         
         }
       //УДАЛЯЕМ ИГРОКОВ
@@ -147,12 +144,9 @@ namespace api
       {
         token_players_.erase(member.params.token);
       }
-    
       //НАПРАВЛЯЕМ НА SQL- запись вышедших
       //почти в 99.99% это будет 1 игрок
       sql::SQL::RecordTOSQLKicked(std::move(to_sql_members)); 
-    
-    
     };
 
     const model::Game game_;

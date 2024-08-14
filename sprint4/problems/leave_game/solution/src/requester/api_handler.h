@@ -70,11 +70,6 @@ namespace request_handler
                           std::string("badRequest"),
                           mist);
       }
-    
-    
-    
-    
-    
     };
   };
 
@@ -102,7 +97,7 @@ namespace request_handler
 
       OffLim offlim = Offset_Limit(parsed_target_[3]);
 
-      if (offlim.limit < 0 || offlim.offset > 100)
+      if (offlim.offset > 100)
       {
         throw std::logic_error("limit over");
       }

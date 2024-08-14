@@ -73,16 +73,16 @@ namespace sql
           play_time_ms INT NOT NULL
           
       );
-
+      
+      CREATE INDEX IF NOT EXISTS retired_players_score_playtime_name_idx ON retired_players (
+      score DESC, play_time_ms, name);
     
       )"_zv
       );
        trz.commit();
     
     /*
-      CREATE INDEX IF NOT EXISTS retired_players_score_playtime_name_idx ON retired_players (
-      score DESC, play_time_ms, name
-      );
+     
     */
     
     
@@ -91,6 +91,7 @@ namespace sql
     //ВСЕХ КИКНУТЫХ ИГОКОВ ЗАНОСИМ В БАЗУ СККУЭЛЬ
     static void RecordTOSQLKicked(std::vector<api::IdTWithDurSc> to_kick)
     {
+      if(!adress_){adress_ = std::getenv(GAME_DB_URL);}
       pqxx::connection conn{adress_};
       pqxx::transaction trz{conn};
 
@@ -104,10 +105,10 @@ namespace sql
 
     static std::string GetRecords(int offset, int limit)
     {
-
+      if(!adress_){adress_ = std::getenv(GAME_DB_URL);}
       boost::json::array arr;
       pqxx::connection conn{adress_};
-      pqxx::transaction trz{conn};
+      pqxx::read_transaction trz{conn};
 
       for (auto [name, score, time] : trz.exec_params(
 
@@ -115,7 +116,7 @@ namespace sql
           SELECT name, score, play_time_ms 
           FROM retired_players 
           ORDER BY score DESC, play_time_ms ASC, name 
-          LIMIT  $1 OFFSET $2; 
+          LIMIT $1 OFFSET $2; 
          )"_zv,limit, offset).iter<std::string, int, int>())
       {
 
@@ -125,12 +126,10 @@ namespace sql
         obj["playTime"] = static_cast<double>(time) / 1000.;
         arr.push_back(std::move(obj));
       }
-
+    
       return boost::json::serialize(arr);
     }
-
-   
-
+    
   private:
     static char *adress_;
   };
@@ -165,7 +164,8 @@ namespace api
      //СИГНАЛ НА ДВИДЕНИЕ НА (карте Х)(игрок У) начал остановился....
      //И начался отсчет его простоя с servertime///
     static void SignalStop(const std::string &map, size_t id_pl, const std::chrono::system_clock::time_point& servertime){
-         activity_.at(map).at(id_pl) = { MoveStautus::STANDING , servertime};
+         if(activity_.at(map).at(id_pl).movestatus == MoveStautus::MOVING){
+         activity_.at(map).at(id_pl) = { MoveStautus::STANDING , servertime};}
     }
   
   private:

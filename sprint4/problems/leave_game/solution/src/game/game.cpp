@@ -14,7 +14,6 @@
 // GAME CONSTRUCTION
 namespace api
 {
-
   void Play::InitSessions()
   {
     for (auto &map : game_.GetMaps())
@@ -159,7 +158,6 @@ namespace api
 
         try
         {
-          
           if(lost_loot.count(event.where)){
           // ПОДНЯТЬ ПРЕДМЕТ
           event.initiator->PickUpLoot(std::move(lost_loot.at(event.where)));
@@ -169,7 +167,7 @@ namespace api
         }
         catch (const std::exception &ex)
         {
-          throw std::logic_error("IN PICKUP LOOT" + std::string(ex.what()));
+          throw std::logic_error("IN PICKUP LOOT");
         }
       }
     }

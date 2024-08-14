@@ -74,11 +74,18 @@ namespace sql
           
       );
 
+    
+      )"_zv
+      );
+       trz.commit();
+    
+    /*
       CREATE INDEX IF NOT EXISTS retired_players_score_playtime_name_idx ON retired_players (
       score DESC, play_time_ms, name
       );
-      )"_zv);
-       trz.commit();
+    */
+    
+    
     }
 
     //ВСЕХ КИКНУТЫХ ИГОКОВ ЗАНОСИМ В БАЗУ СККУЭЛЬ

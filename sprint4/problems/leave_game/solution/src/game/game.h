@@ -186,7 +186,7 @@ namespace api
     const Play &play_;
 
   public:
-    PlayObserver(const Play &play);
+    explicit PlayObserver(const Play &play);
     // ПЕЧАТАЕТ ДОРОГИ ИГРЫ
     void PrintSessionRoads() const;
     // ПЕЧАТАЕТ СЕССИИ ИГРЫ

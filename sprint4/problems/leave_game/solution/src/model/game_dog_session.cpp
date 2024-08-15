@@ -67,7 +67,7 @@ namespace model
 
     void GameSession::LeaveGame(uint32_t id)
     {
-        if (dogs_.count(id) >= 0) {dogs_.erase(id);}
+        if (dogs_.count(id)) {dogs_.erase(id);}
         --players;
     }
     const std::map<uint32_t, std::shared_ptr<Dog>> &GameSession::GetDogs() const
@@ -198,6 +198,6 @@ namespace model
 }
 
 std::ostream& operator<<(std::ostream& os, model::Loot lt){
-    os<<"{id: "<<lt.id<<" type:"<<lt.type<<" }";
+    os << "{id: " << lt.id << " type:" << lt.type << " }";
     return os;
 }

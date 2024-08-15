@@ -23,7 +23,6 @@ namespace collision_detector
         LOST_THING
     };
 
-    /*Item geom::Point2D position;double width;*/
     struct ItemMOD
     {
         geom::Point2D position;
@@ -32,8 +31,6 @@ namespace collision_detector
         ItemType type_colision;
     };
 
-    /*Gatherer { geom::Point2D start_pos;
-   geom::Point2D end_pos; double width;*/
     struct GathererDog
     {
         geom::Point2D start_pos;
@@ -43,8 +40,7 @@ namespace collision_detector
         std::shared_ptr<model::Dog> initiator;
     };
 
-    /* struct GatheringEvent {size_t item_id;
-    size_t gatherer_id; double sq_distance; double time;*/
+    
     struct GatheringEventMOD
     {
         double sq_distance;
@@ -69,12 +65,7 @@ namespace collision_detector
         void AddGatherers(std::vector<GathererDog> gatherers);
 
     private:
-        /*
-        НИЖЕ МЕТОДЫ ТОЛЬКО РАДИ РЕАЛИЗАЦИИ ИНТЕРФЕЙСА ПОЛЬЗУЮСЬ ДРУГИМИ
-        Причина 1: Структуры имеют более расширенныц набор полей по сравению что дали в прекоде
-        Причина 2: Методы жутко непроизводительные. Конструировать объект чтобы просто посмотреть на его
-                   поля - очень расточительно!
-        */
+       
         std::vector<ItemMOD> items_;
         std::vector<GathererDog> gatherers_;
     };

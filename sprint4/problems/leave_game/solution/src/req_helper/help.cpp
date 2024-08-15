@@ -13,7 +13,12 @@
 // PARSED TARGET
 namespace request_handler
 {
-
+  constexpr size_t TWO = 2;
+  constexpr size_t THREE = 3;
+  constexpr size_t FOUR = 4;
+  constexpr size_t FIVE = 5; 
+  
+  
   std::vector<std::string> ParseToken(std::string target)
   {
     if (target.empty())
@@ -50,31 +55,31 @@ namespace request_handler
 
   DirectionAPI Director(const std::vector<std::string> &container)
   {
-    if (container.size() < 3 || container.size() > 5)
+    if (container.size() < THREE || container.size() > FIVE)
       return DirectionAPI::ERROR;
 
-    if (container[2] == json_foo::maps)
+    if (container[TWO] == json_foo::maps)
       return DirectionAPI::MAPS;
 
-    if (container[2] != json_foo::game)
+    if (container[TWO] != json_foo::game)
       return DirectionAPI::ERROR;
 
-    if (container.size() == 4)
+    if (container.size() == FOUR)
     {
-      if (container[3].find(json_foo::records) == 0)
+      if (container[THREE].starts_with(json_foo::records))
         return DirectionAPI::RECORDS;
-      if (container[3] == json_foo::players)
+      if (container[THREE] == json_foo::players)
         return DirectionAPI::PLAYERS;
-      if (container[3] == json_foo::join)
+      if (container[THREE] == json_foo::join)
         return DirectionAPI::JOIN;
-      if (container[3] == json_foo::state)
+      if (container[THREE] == json_foo::state)
         return DirectionAPI::STATE;
-      if (container[3] == json_foo::tick)
+      if (container[THREE] == json_foo::tick)
         return DirectionAPI::TICK;
     }
-    if (container.size() == 5)
+    if (container.size() == FIVE)
     {
-      if ((container[3] == json_foo::player) && (container[4] == json_foo::action))
+      if ((container[THREE] == json_foo::player) && (container[FOUR] == json_foo::action))
         return DirectionAPI::PLAYER_ACTION;
     }
     return DirectionAPI::ERROR;

@@ -338,9 +338,9 @@ namespace api
     needed_session->JoinGame(token_players_.at(token)->PlayersDog());
 
     // ПРИСОЕДИНЯЕМСЯ К СЧЕТЧИКУ ВРЕМЕНИ ПРОСТОЯ
-    TCC::JoinToTimeObserve(*needed_session->GetMap().GetId(), 
-                            token_players_.at(token)->PlayersDog()->GetId(), 
-                            token_players_.at(token)->GetToken(), serv_time_);
+    TCC::JoinToTimeObserve(*needed_session->GetMap().GetId(),
+                           token_players_.at(token)->PlayersDog()->GetId(),
+                           token_players_.at(token)->GetToken(), serv_time_);
     return token_players_.at(token);
   }
 
@@ -359,5 +359,41 @@ namespace api
   {
     return tick_signal_.connect(handler);
   }
+
+  void Play::KickUnuseful(std::chrono::milliseconds delta_t)
+  {
+
+    std::vector<IdTWithDurSc> to_sql_members;
+    // ПРИ ОБХОДЕ СЛОВАРЯ ИГРОКОВ УДАЛЯТЬ ИГРОКОВ НЕ БУДЕМ
+    // ТОЛЬКО СОБАК ИЗ СЕССИЙ
+    for (auto &pair : token_players_)
+    {
+      // ИГРОК, СЕССИЯ, СОБАКА
+      std::shared_ptr<Player> player = pair.second;
+      std::shared_ptr<GameSession> pl_sess = player->PlayersSession();
+      std::shared_ptr<Dog> pl_dog = player->PlayersDog();
+
+      // ИД СЕССИИ И СОБАКИ
+      auto &sess_id = *pl_sess->GetMap().GetId();
+      size_t dog_id = pl_dog->GetId();
+
+      // ЕСЛИ ПРИШЛО ВРЕМЯ УДАЛЯТЬ ЕЕ ИЗ ИГРЫ
+      if (auto remove = TCC::StructToDeleteOrNull(sess_id, dog_id, serv_time_, delta_t))
+      {
+        (*remove).score = pl_dog->Score();
+        (*remove).name = pl_dog->GrabName();
+        pl_sess->LeaveGame(dog_id);
+        to_sql_members.push_back(std::move(*remove));
+      }
+    }
+    // УДАЛЯЕМ ИГРОКОВ
+    for (auto &&member : to_sql_members)
+    {
+      token_players_.erase(member.params.token);
+    }
+    // НАПРАВЛЯЕМ НА SQL- запись вышедших
+    // почти в 99.99% это будет 1 игрок
+    sql::SQL::RecordTOSQLKicked(std::move(to_sql_members));
+  };
 
 }

@@ -45,7 +45,7 @@ namespace model
         void ThrowLoot();
         const std::vector<Loot> &GetLootBag() const;
         int Score() const;
-        int DogsCount() const { return ids_; }
+        static int DogsCount() { return ids_; }
         std::string GrabName();
 
     private:

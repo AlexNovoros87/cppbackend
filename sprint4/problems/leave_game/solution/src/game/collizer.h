@@ -56,8 +56,8 @@ namespace collision_detector
     class Collizer 
     {
     public:
-        size_t ItemsCount() const ;
-        size_t GatherersCount() const ;
+        size_t ItemsCount() const;
+        size_t GatherersCount() const;
         const ItemMOD &GetCollisionPoint(size_t idx) const;
         const GathererDog &GetInitiator(size_t idx) const;
         void AddOffice(const model::Office &office);
